@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -20,8 +20,11 @@ export default function CreateReportPage() {
   const { token, isAuthenticated } = useAuth();
   const [form, setForm] = useState({ title: '', description: '', category: '', severity: 'medium', isAnonymous: false });
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<{ file: File; preview: string; type: string }[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isAuthenticated) router.push('/login');
@@ -40,7 +43,17 @@ export default function CreateReportPage() {
     setLoading(true);
     setError('');
     try {
-      await api.reports.create(token, { ...form, ...location });
+      // Upload media files first
+      const mediaUrls: string[] = [];
+      for (const media of mediaFiles) {
+        try {
+          const fileType = media.type.startsWith('video') ? 'video' : 'image';
+          const { uploadUrl, fileUrl } = await api.upload.getPresignedUrl(token, fileType, media.file.type);
+          await fetch(uploadUrl, { method: 'PUT', body: media.file, headers: { 'Content-Type': media.file.type } });
+          mediaUrls.push(fileUrl);
+        } catch {}
+      }
+      await api.reports.create(token, { ...form, ...location, mediaUrls });
       router.push('/feed');
     } catch (err: any) {
       setError(err.message || 'Failed to submit report');
@@ -50,6 +63,23 @@ export default function CreateReportPage() {
   };
 
   const update = (field: string, value: any) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleMediaAdd = (files: FileList | null) => {
+    if (!files) return;
+    const newFiles = Array.from(files).slice(0, 5 - mediaFiles.length).map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      type: file.type,
+    }));
+    setMediaFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaFiles((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -99,6 +129,40 @@ export default function CreateReportPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Media Capture */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Photos / Videos</label>
+          <div className="flex gap-2 mb-3">
+            <button type="button" onClick={() => cameraInputRef.current?.click()}
+              className="flex-1 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-[#0F7B6C] hover:text-[#0F7B6C] transition">
+              📷 Take Photo/Video
+            </button>
+            <button type="button" onClick={() => fileInputRef.current?.click()}
+              className="flex-1 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-[#0F7B6C] hover:text-[#0F7B6C] transition">
+              📁 Choose File
+            </button>
+          </div>
+          <input ref={cameraInputRef} type="file" accept="image/*,video/*" capture="environment" className="hidden"
+            onChange={(e) => handleMediaAdd(e.target.files)} />
+          <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple className="hidden"
+            onChange={(e) => handleMediaAdd(e.target.files)} />
+          {mediaFiles.length > 0 && (
+            <div className="grid grid-cols-3 gap-2">
+              {mediaFiles.map((m, i) => (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                  {m.type.startsWith('video') ? (
+                    <video src={m.preview} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={m.preview} alt="" className="w-full h-full object-cover" />
+                  )}
+                  <button type="button" onClick={() => removeMedia(i)}
+                    className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Location */}

@@ -17,6 +17,7 @@ export default function Navbar() {
           <Link href="/donations" className="hover:text-[#F97316] transition">Helping Hands</Link>
           <Link href="/media-licensing" className="hover:text-[#0F7B6C] transition">Media</Link>
           <Link href="/map" className="hover:text-[#0F7B6C] transition">Map</Link>
+          <Link href="/live" className="hover:text-[#D92D20] transition">🔴 Live</Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -24,6 +25,9 @@ export default function Navbar() {
             <>
               <Link href="/create-report" className="px-4 py-2 text-sm font-semibold text-white bg-[#D92D20] rounded-lg hover:bg-red-700 transition">
                 + Report
+              </Link>
+              <Link href="/emergency" className="px-3 py-2 text-sm font-semibold text-[#D92D20] border border-[#D92D20] rounded-lg hover:bg-red-50 transition">
+                🚨 SOS
               </Link>
               <Link href="/profile/licenses" className="text-sm text-gray-500 hover:text-gray-700">Licenses</Link>
               <span className="text-sm text-gray-500 hidden sm:inline">{user?.username}</span>

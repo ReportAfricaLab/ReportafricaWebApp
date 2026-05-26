@@ -7,3 +7,4 @@ export { MediaLicenseEntity } from './media-license.entity';
 export { EarningsEntity } from './earnings.entity';
 export { LivestreamEntity } from './livestream.entity';
 export { ElectionReportEntity } from './election-report.entity';
+export { ChatMessageEntity } from './chat-message.entity';

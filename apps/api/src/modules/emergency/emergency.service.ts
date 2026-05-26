@@ -4,12 +4,14 @@ import { Repository } from 'typeorm';
 import { ReportEntity } from '../../database/entities';
 import { NotificationsService } from '../notifications/notifications.service';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
+import { LivestreamService } from '../livestream/livestream.service';
 
 interface SOSPayload {
   latitude: number;
   longitude: number;
-  type: string; // fire, violence, accident, flood, security_threat
+  type: string;
   description?: string;
+  broadcast?: boolean; // auto-start livestream
 }
 
 @Injectable()
@@ -19,6 +21,7 @@ export class EmergencyService {
     private readonly reportRepo: Repository<ReportEntity>,
     private readonly notifications: NotificationsService,
     private readonly realtime: RealtimeGateway,
+    private readonly livestreamService: LivestreamService,
   ) {}
 
   async triggerSOS(userId: string, country: string, payload: SOSPayload) {
@@ -54,7 +57,22 @@ export class EmergencyService {
       timestamp: new Date().toISOString(),
     });
 
-    return { report: saved, alertsSent: true };
+    // 4. Auto-start emergency broadcast if requested
+    let stream = null;
+    if (payload.broadcast) {
+      try {
+        stream = await this.livestreamService.createStream(userId, country, {
+          title: `🚨 EMERGENCY: ${this.getTypeLabel(payload.type)}`,
+          description: payload.description || 'Emergency broadcast',
+          category: 'emergency',
+          latitude: payload.latitude,
+          longitude: payload.longitude,
+        });
+        await this.livestreamService.goLive(stream.id, userId);
+      } catch {}
+    }
+
+    return { report: saved, alertsSent: true, stream };
   }
 
   async getActiveEmergencies(country: string) {

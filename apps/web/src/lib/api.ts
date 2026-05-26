@@ -24,6 +24,8 @@ export const api = {
       fetchAPI('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
     login: (body: { email: string; password: string }) =>
       fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+    oauth: (provider: string, token: string, country?: string) =>
+      fetchAPI('/auth/oauth', { method: 'POST', body: JSON.stringify({ provider, token, country }) }),
   },
   users: {
     me: (token: string) => fetchAPI('/users/me', { token }),
@@ -57,5 +59,18 @@ export const api = {
   earnings: {
     list: (token: string, page = 1) => fetchAPI(`/earnings?page=${page}`, { token }),
     stats: (token: string) => fetchAPI('/earnings/stats', { token }),
+  },
+  livestream: {
+    create: (token: string, body: any) => fetchAPI('/livestream/create', { method: 'POST', body: JSON.stringify(body), token }),
+    goLive: (token: string, id: string) => fetchAPI(`/livestream/${id}/go-live`, { method: 'PATCH', token }),
+    end: (token: string, id: string) => fetchAPI(`/livestream/${id}/end`, { method: 'PATCH', token }),
+    getLive: (country: string, page = 1) => fetchAPI(`/livestream/live?country=${country}&page=${page}`),
+    getRecordings: (country: string, page = 1) => fetchAPI(`/livestream/recordings?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/livestream/${id}`),
+    myStreams: (token: string) => fetchAPI('/livestream/my/streams', { token }),
+  },
+  upload: {
+    getPresignedUrl: (token: string, fileType: string, contentType: string) =>
+      fetchAPI('/upload/presigned-url', { method: 'POST', body: JSON.stringify({ fileType, contentType }), token }),
   },
 };

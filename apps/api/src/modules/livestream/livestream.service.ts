@@ -94,7 +94,7 @@ export class LivestreamService {
   }
 
   private async createIVSChannel(title: string): Promise<{ channelArn: string; streamKeyValue: string; ingestEndpoint: string; playbackUrl: string }> {
-    if (!this.accessKeyId) {
+    if (!this.accessKeyId || this.accessKeyId === 'your_access_key') {
       // Dev mode — return mock data
       const mockId = `mock_${Date.now()}`;
       return {

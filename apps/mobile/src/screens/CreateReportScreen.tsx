@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useAppStore } from '../store/useAppStore';
 import { reportsAPI } from '../services/api';
 import { getCurrentLocation } from '../services/location';
 import { theme } from '../theme';
 import { REPORT_CATEGORY_LABELS } from '../constants';
+import axios from 'axios';
+
+const API_URL = 'http://10.162.41.17:3001/api/v1';
 
 const SEVERITY_OPTIONS = ['low', 'medium', 'high', 'critical'] as const;
 
@@ -17,6 +21,7 @@ export default function CreateReportScreen() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
+  const [mediaFiles, setMediaFiles] = useState<{ uri: string; type: string; fileName: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -28,6 +33,42 @@ export default function CreateReportScreen() {
       }
     })();
   }, []);
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') { Alert.alert('Permission needed', 'Camera access is required'); return; }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8 });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      setMediaFiles((prev) => [...prev, { uri: asset.uri, type: asset.type === 'video' ? 'video/mp4' : 'image/jpeg', fileName: asset.fileName || `media_${Date.now()}` }]);
+    }
+  };
+
+  const pickFromGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.All, quality: 0.8, allowsMultipleSelection: true, selectionLimit: 5 });
+    if (!result.canceled) {
+      const newFiles = result.assets.map((a) => ({ uri: a.uri, type: a.type === 'video' ? 'video/mp4' : 'image/jpeg', fileName: a.fileName || `media_${Date.now()}` }));
+      setMediaFiles((prev) => [...prev, ...newFiles].slice(0, 5));
+    }
+  };
+
+  const removeMedia = (index: number) => setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+
+  const uploadMedia = async (): Promise<string[]> => {
+    const { token } = useAppStore.getState();
+    const urls: string[] = [];
+    for (const media of mediaFiles) {
+      try {
+        const fileType = media.type.startsWith('video') ? 'video' : 'image';
+        const res = await axios.post(`${API_URL}/upload/presigned-url`, { fileType, contentType: media.type }, { headers: { Authorization: `Bearer ${token}` } });
+        const { uploadUrl, fileUrl } = res.data;
+        const blob = await fetch(media.uri).then((r) => r.blob());
+        await fetch(uploadUrl, { method: 'PUT', body: blob, headers: { 'Content-Type': media.type } });
+        urls.push(fileUrl);
+      } catch {}
+    }
+    return urls;
+  };
 
   const handleSubmit = async () => {
     if (!title || !description || !category) {
@@ -41,11 +82,10 @@ export default function CreateReportScreen() {
 
     setSubmitting(true);
     try {
-      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous });
+      const mediaUrls = await uploadMedia();
+      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, mediaUrls });
       Alert.alert('Report Submitted', 'Your report has been submitted successfully.');
-      setTitle('');
-      setDescription('');
-      setCategory('');
+      setTitle(''); setDescription(''); setCategory(''); setMediaFiles([]);
     } catch (err) {
       Alert.alert('Error', 'Failed to submit report. Please try again.');
     } finally {
@@ -96,6 +136,29 @@ export default function CreateReportScreen() {
         <Text style={styles.anonymousText}>Report anonymously</Text>
       </TouchableOpacity>
 
+      {/* Media Capture */}
+      <Text style={styles.label}>Photos / Videos</Text>
+      <View style={styles.mediaRow}>
+        <TouchableOpacity style={styles.mediaBtn} onPress={takePhoto}>
+          <Text style={styles.mediaBtnText}>📷 Camera</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.mediaBtn} onPress={pickFromGallery}>
+          <Text style={styles.mediaBtnText}>📁 Gallery</Text>
+        </TouchableOpacity>
+      </View>
+      {mediaFiles.length > 0 && (
+        <View style={styles.mediaGrid}>
+          {mediaFiles.map((m, i) => (
+            <View key={i} style={styles.mediaThumbnail}>
+              <Image source={{ uri: m.uri }} style={styles.mediaImage} />
+              <TouchableOpacity style={styles.mediaRemove} onPress={() => removeMedia(i)}>
+                <Text style={styles.mediaRemoveText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Location Status */}
       <View style={styles.locationRow}>
         <Text style={styles.locationText}>
@@ -138,4 +201,12 @@ const styles = StyleSheet.create({
   submitBtn: { marginTop: 24, backgroundColor: theme.colors.primary, paddingVertical: 16, borderRadius: theme.borderRadius.md, alignItems: 'center' },
   submitBtnDisabled: { opacity: 0.6 },
   submitBtnText: { color: '#fff', fontSize: theme.fontSize.md, fontWeight: '700' },
+  mediaRow: { flexDirection: 'row', gap: 10 },
+  mediaBtn: { flex: 1, paddingVertical: 14, borderRadius: 10, borderWidth: 2, borderStyle: 'dashed', borderColor: theme.colors.light.border, alignItems: 'center', backgroundColor: '#fff' },
+  mediaBtnText: { fontSize: 14, color: theme.colors.light.textSecondary, fontWeight: '600' },
+  mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  mediaThumbnail: { width: 80, height: 80, borderRadius: 8, overflow: 'hidden', position: 'relative' },
+  mediaImage: { width: '100%', height: '100%' },
+  mediaRemove: { position: 'absolute', top: 2, right: 2, width: 20, height: 20, borderRadius: 10, backgroundColor: '#D92D20', alignItems: 'center', justifyContent: 'center' },
+  mediaRemoveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
 });

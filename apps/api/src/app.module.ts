@@ -21,6 +21,7 @@ import { EmergencyModule } from './modules/emergency/emergency.module';
 import { LivestreamModule } from './modules/livestream/livestream.module';
 import { ElectionModule } from './modules/election/election.module';
 import { SearchModule } from './modules/search/search.module';
+import { QueueModule } from './modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { SearchModule } from './modules/search/search.module';
     LivestreamModule,
     ElectionModule,
     SearchModule,
+    QueueModule,
   ],
 })
 export class AppModule {}

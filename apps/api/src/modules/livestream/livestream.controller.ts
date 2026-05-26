@@ -2,6 +2,9 @@ import { Controller, Post, Get, Patch, Param, Body, Query, UseGuards, Request } 
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { LivestreamService } from './livestream.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ChatMessageEntity } from '../../database/entities';
 
 class CreateStreamDto {
   @IsString() title: string;
@@ -13,7 +16,11 @@ class CreateStreamDto {
 
 @Controller('livestream')
 export class LivestreamController {
-  constructor(private readonly service: LivestreamService) {}
+  constructor(
+    private readonly service: LivestreamService,
+    @InjectRepository(ChatMessageEntity)
+    private readonly chatRepo: Repository<ChatMessageEntity>,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
@@ -52,5 +59,16 @@ export class LivestreamController {
   @Get('my/streams')
   getMyStreams(@Request() req: any) {
     return this.service.getUserStreams(req.user.id);
+  }
+
+  @Get(':id/chat')
+  getChatHistory(@Param('id') id: string, @Query('page') page?: string) {
+    const p = Number(page) || 1;
+    return this.chatRepo.find({
+      where: { roomId: `stream:${id}` },
+      order: { createdAt: 'DESC' },
+      skip: (p - 1) * 50,
+      take: 50,
+    });
   }
 }
