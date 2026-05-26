@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MediaLicenseEntity, ReportEntity } from '../../database/entities';
+import { MediaLicenseEntity, ReportEntity, UserEntity } from '../../database/entities';
+import { KoraPayService } from '../payments/korapay.service';
+import { EarningsService } from '../earnings/earnings.service';
 
 @Injectable()
 export class MediaLicensingService {
@@ -10,6 +12,10 @@ export class MediaLicensingService {
     private readonly licenseRepo: Repository<MediaLicenseEntity>,
     @InjectRepository(ReportEntity)
     private readonly reportRepo: Repository<ReportEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
+    private readonly koraPayService: KoraPayService,
+    private readonly earningsService: EarningsService,
   ) {}
 
   async requestLicense(requesterId: string, dto: {
@@ -66,5 +72,62 @@ export class MediaLicensingService {
       license.validUntil = validUntil;
     }
     return this.licenseRepo.save(license);
+  }
+
+  async initiatePayment(licenseId: string, payerEmail: string, payerName: string) {
+    const license = await this.licenseRepo.findOne({ where: { id: licenseId }, relations: ['report'] });
+    if (!license) throw new NotFoundException('License not found');
+    if (license.status !== 'approved') throw new BadRequestException('License must be approved before payment');
+    if (!license.offeredAmount) throw new BadRequestException('No amount set for this license');
+
+    const reporter = await this.userRepo.findOne({ where: { id: license.reporterId } });
+    if (!reporter?.bankAccountNumber || !reporter?.bankCode) {
+      throw new BadRequestException('Reporter has not set up bank details');
+    }
+
+    const reference = this.koraPayService.generateReference();
+
+    const result = await this.koraPayService.initializeSplitPayment({
+      amount: license.offeredAmount,
+      currency: license.currency || 'NGN',
+      customerEmail: payerEmail,
+      customerName: payerName,
+      reference,
+      reporterBankAccount: {
+        bankCode: reporter.bankCode,
+        accountNumber: reporter.bankAccountNumber,
+        accountName: reporter.bankAccountName,
+      },
+      platformSplitPercent: 50,
+      metadata: { licenseId, reporterId: license.reporterId, reportId: license.reportId },
+    });
+
+    return { paymentUrl: result.data?.checkout_url, reference };
+  }
+
+  async handlePaymentWebhook(reference: string, event: string) {
+    if (event !== 'charge.success') return;
+
+    const verification = await this.koraPayService.verifyTransaction(reference);
+    if (!verification.status || verification.data?.status !== 'success') return;
+
+    const metadata = verification.data?.metadata;
+    if (!metadata?.licenseId) return;
+
+    const license = await this.licenseRepo.findOne({ where: { id: metadata.licenseId } });
+    if (!license) return;
+
+    // Record reporter earnings (50% of total)
+    const reporterAmount = license.offeredAmount * 0.5;
+    await this.earningsService.recordEarning({
+      reporterId: license.reporterId,
+      amount: reporterAmount,
+      currency: license.currency || 'NGN',
+      source: 'media_license',
+      sourceId: license.id,
+      description: `License payment from ${license.organizationName}`,
+      paymentReference: reference,
+      payerName: license.organizationName,
+    });
   }
 }

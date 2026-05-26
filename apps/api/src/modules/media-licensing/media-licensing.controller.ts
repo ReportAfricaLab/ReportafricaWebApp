@@ -1,40 +1,25 @@
-import { Controller, Post, Get, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Param, Body, Query, UseGuards, Request, Headers } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsOptional, IsNumber, IsIn } from 'class-validator';
 import { MediaLicensingService } from './media-licensing.service';
 
 class RequestLicenseDto {
-  @IsString()
-  reportId: string;
-
-  @IsString()
-  organizationName: string;
-
-  @IsString()
-  @IsIn(['tv_station', 'newspaper', 'blog', 'news_agency'])
-  organizationType: string;
-
-  @IsString()
-  purpose: string;
-
-  @IsNumber()
-  @IsOptional()
-  offeredAmount?: number;
-
-  @IsString()
-  @IsOptional()
-  currency?: string;
-
-  @IsString()
-  @IsIn(['one_time', 'exclusive', 'non_exclusive'])
-  @IsOptional()
-  licenseType?: string;
+  @IsString() reportId: string;
+  @IsString() organizationName: string;
+  @IsString() @IsIn(['tv_station', 'newspaper', 'blog', 'news_agency']) organizationType: string;
+  @IsString() purpose: string;
+  @IsNumber() @IsOptional() offeredAmount?: number;
+  @IsString() @IsOptional() currency?: string;
+  @IsString() @IsIn(['one_time', 'exclusive', 'non_exclusive']) @IsOptional() licenseType?: string;
 }
 
 class RespondDto {
-  @IsString()
-  @IsIn(['approved', 'rejected'])
-  action: 'approved' | 'rejected';
+  @IsString() @IsIn(['approved', 'rejected']) action: 'approved' | 'rejected';
+}
+
+class PayLicenseDto {
+  @IsString() email: string;
+  @IsString() name: string;
 }
 
 @Controller('media-licensing')
@@ -63,5 +48,19 @@ export class MediaLicensingController {
   @Patch(':id/respond')
   respond(@Param('id') id: string, @Request() req: any, @Body() dto: RespondDto) {
     return this.service.respondToRequest(id, req.user.id, dto.action);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/pay')
+  payForLicense(@Param('id') id: string, @Body() dto: PayLicenseDto) {
+    return this.service.initiatePayment(id, dto.email, dto.name);
+  }
+
+  @Post('webhook/korapay')
+  handleWebhook(@Body() body: any, @Headers('x-korapay-signature') signature: string) {
+    if (body.event === 'charge.success') {
+      this.service.handlePaymentWebhook(body.data?.reference, body.event);
+    }
+    return { status: 'ok' };
   }
 }

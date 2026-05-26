@@ -12,6 +12,8 @@
     "lint": "turbo run lint",
     "dev:api": "turbo run dev --filter=@reportafrica/api",
     "dev:web": "turbo run dev --filter=@reportafrica/web",
+    "dev:admin": "turbo run dev --filter=@reportafrica/admin",
+    "dev:gov": "turbo run dev --filter=@reportafrica/gov-dashboard",
     "dev:mobile": "cd apps/mobile && npm start"
   },
   "devDependencies": {

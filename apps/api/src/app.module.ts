@@ -10,6 +10,9 @@ import { VerificationModule } from './modules/verification/verification.module';
 import { DonationsModule } from './modules/donations/donations.module';
 import { MediaLicensingModule } from './modules/media-licensing/media-licensing.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { EarningsModule } from './modules/earnings/earnings.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     DonationsModule,
     MediaLicensingModule,
     AnalyticsModule,
+    PaymentsModule,
+    EarningsModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

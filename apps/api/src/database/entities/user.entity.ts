@@ -64,6 +64,18 @@ export class UserEntity {
   @Column({ name: 'fcm_token', nullable: true })
   fcmToken: string;
 
+  @Column({ name: 'bank_code', nullable: true })
+  bankCode: string;
+
+  @Column({ name: 'bank_name', nullable: true })
+  bankName: string;
+
+  @Column({ name: 'bank_account_number', nullable: true })
+  bankAccountNumber: string;
+
+  @Column({ name: 'bank_account_name', nullable: true })
+  bankAccountName: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
