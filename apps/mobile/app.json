@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "ReportAfrica",
+    "slug": "reportafrica",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#0F7B6C"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.reportafrica.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "ReportAfrica needs your location to show nearby incidents and tag your reports.",
+        "NSCameraUsageDescription": "ReportAfrica needs camera access to capture live reports.",
+        "NSMicrophoneUsageDescription": "ReportAfrica needs microphone access for live reporting and voice notes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F7B6C"
+      },
+      "package": "com.reportafrica.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-location",
+      "expo-camera"
+    ]
+  }
+}

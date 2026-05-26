@@ -1,0 +1,20 @@
+{
+  "name": "reportafrica",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "dev:api": "turbo run dev --filter=@reportafrica/api",
+    "dev:web": "turbo run dev --filter=@reportafrica/web",
+    "dev:mobile": "cd apps/mobile && npm start"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0"
+  }
+}
