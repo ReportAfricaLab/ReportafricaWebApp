@@ -1,12 +1,17 @@
-import { Controller, Post, Get, Param, Body, Query, UseGuards, Request, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { IsString, IsNumber, IsOptional, IsEmail, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEmail, Min, IsInt } from 'class-validator';
 import { TipsService } from './tips.service';
 
-class InitiateTipDto {
-  @IsString() reportId: string;
-  @IsNumber() @Min(100) amount: number;
+class BuyPackDto {
+  @IsInt() packIndex: number;
   @IsEmail() email: string;
+  @IsString() country: string;
+}
+
+class SendTipDto {
+  @IsString() reportId: string;
+  @IsNumber() @Min(1) amount: number;
   @IsString() @IsOptional() message?: string;
 }
 
@@ -14,15 +19,27 @@ class InitiateTipDto {
 export class TipsController {
   constructor(private readonly service: TipsService) {}
 
-  @Post()
-  initiateTip(@Request() req: any, @Body() dto: InitiateTipDto) {
-    const tipperId = req.user?.id || null;
-    return this.service.initiateTip({ ...dto, tipperId });
+  @Post('buy-pack')
+  buyPack(@Request() req: any, @Body() dto: BuyPackDto) {
+    const userId = req.user?.id || null;
+    return this.service.buyPack(userId, dto);
   }
 
-  @Get('verify/:reference')
-  verifyTip(@Param('reference') reference: string) {
-    return this.service.verifyTip(reference);
+  @Get('verify-pack/:reference')
+  verifyPack(@Param('reference') reference: string, @Request() req: any) {
+    return this.service.verifyPackPurchase(reference, req.user?.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post()
+  sendTip(@Request() req: any, @Body() dto: SendTipDto) {
+    return this.service.sendTip(req.user.id, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('balance')
+  getBalance(@Request() req: any) {
+    return this.service.getBalance(req.user.id);
   }
 
   @Get('report/:reportId')

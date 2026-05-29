@@ -101,8 +101,10 @@ export const commentsAPI = {
 };
 
 export const tipsAPI = {
-  create: (data: { reportId: string; amount: number; email: string; message?: string }) => api.post('/tips', data),
-  verify: (reference: string) => api.get(`/tips/verify/${reference}`),
+  buyPack: (data: { packIndex: number; email: string; country: string }) => api.post('/tips/buy-pack', data),
+  verifyPack: (reference: string) => api.get(`/tips/verify-pack/${reference}`),
+  sendTip: (data: { reportId: string; amount: number; message?: string }) => api.post('/tips', data),
+  getBalance: () => api.get('/tips/balance'),
   getByReport: (reportId: string) => api.get(`/tips/report/${reportId}`),
   getReceived: (page = 1) => api.get(`/tips/received?page=${page}`),
 };

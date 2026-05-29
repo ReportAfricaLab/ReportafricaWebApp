@@ -5,21 +5,43 @@ import { reportsAPI, followsAPI, tipsAPI, reportUpdatesAPI } from '../services/a
 import { useAppStore } from '../store/useAppStore';
 import { theme } from '../theme';
 
+const TIP_PRESETS: Record<string, number[]> = {
+  NGN: [1500, 3000, 5000, 10000],
+  GHS: [15, 30, 50, 100],
+  KES: [150, 300, 500, 1000],
+  ZAR: [20, 50, 100, 200],
+  UGX: [5000, 10000, 20000, 50000],
+  RWF: [1500, 3000, 5000, 10000],
+};
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R', UGX: 'USh', RWF: 'RWF',
+};
+
+const COUNTRY_CURRENCY: Record<string, string> = {
+  NG: 'NGN', GH: 'GHS', KE: 'KES', ZA: 'ZAR', UG: 'UGX', RW: 'RWF',
+};
+
 export default function ReportDetailScreen({ route }: any) {
   const { id } = route.params;
   const navigation = useNavigation<any>();
-  const { user } = useAppStore();
+  const { user, country } = useAppStore();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [updates, setUpdates] = useState<any[]>([]);
   const [showTip, setShowTip] = useState(false);
-  const [tipAmount, setTipAmount] = useState('');
+  const [tipBalance, setTipBalance] = useState(0);
   const [updateText, setUpdateText] = useState('');
+
+  const currency = COUNTRY_CURRENCY[country] || 'NGN';
+  const symbol = CURRENCY_SYMBOLS[currency] || '₦';
+  const presets = TIP_PRESETS[currency] || TIP_PRESETS.NGN;
 
   useEffect(() => {
     reportsAPI.getById(id).then((res) => setReport(res.data)).finally(() => setLoading(false));
     reportUpdatesAPI.getByReport(id).then((res) => setUpdates(res.data?.data || [])).catch(() => {});
+    tipsAPI.getBalance().then((res) => setTipBalance(res.data?.balance || 0)).catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -47,16 +69,19 @@ export default function ReportDetailScreen({ route }: any) {
     } catch {}
   };
 
-  const handleTip = async () => {
-    const amount = Number(tipAmount);
-    if (!amount || amount < 100) { Alert.alert('Error', 'Minimum tip is ₦100'); return; }
+  const handleTip = async (amount: number) => {
+    if (tipBalance < amount) {
+      Alert.alert('Insufficient Balance', `You need ${symbol}${amount} but have ${symbol}${tipBalance}. Buy a tip pack first.`);
+      return;
+    }
     try {
-      const res = await tipsAPI.create({ reportId: id, amount, email: user?.email || '' });
-      if (res.data?.paymentUrl) {
-        Alert.alert('Tip Initiated', 'Payment link generated. Complete payment to send tip.');
-      }
-      setShowTip(false); setTipAmount('');
-    } catch { Alert.alert('Error', 'Failed to initiate tip'); }
+      const res = await tipsAPI.sendTip({ reportId: id, amount });
+      setTipBalance(res.data?.remainingBalance ?? tipBalance - amount);
+      Alert.alert('Tip Sent! 🎉', `You tipped ${symbol}${amount} to this reporter.`);
+      setShowTip(false);
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.message || 'Failed to send tip');
+    }
   };
 
   const handlePostUpdate = async () => {
@@ -136,13 +161,19 @@ export default function ReportDetailScreen({ route }: any) {
         <>
           <TouchableOpacity style={styles.tipBtn} onPress={() => setShowTip(!showTip)}>
             <Text style={styles.tipBtnText}>💰 Tip Reporter</Text>
+            <Text style={styles.tipBalanceText}>Balance: {symbol}{tipBalance}</Text>
           </TouchableOpacity>
           {showTip && (
             <View style={styles.tipForm}>
-              <TextInput style={styles.tipInput} value={tipAmount} onChangeText={setTipAmount}
-                placeholder="Amount (min ₦100)" keyboardType="numeric" />
-              <TouchableOpacity style={styles.tipSendBtn} onPress={handleTip}>
-                <Text style={styles.tipSendText}>Send Tip</Text>
+              <View style={styles.tipPresetsRow}>
+                {presets.map((amt) => (
+                  <TouchableOpacity key={amt} style={styles.tipPresetBtn} onPress={() => handleTip(amt)}>
+                    <Text style={styles.tipPresetText}>{symbol}{amt.toLocaleString()}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity style={styles.buyPackBtn} onPress={() => Alert.alert('Buy Tip Pack', 'Coming soon: In-app pack purchase')}>
+                <Text style={styles.buyPackText}>+ Buy Tip Pack</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -212,12 +243,15 @@ const styles = StyleSheet.create({
   disputeBtn: { flex: 1, paddingVertical: 12, backgroundColor: '#fef2f2', borderRadius: 8, alignItems: 'center' },
   disputeText: { fontSize: 14, fontWeight: '600', color: '#dc2626' },
   views: { fontSize: 12, color: theme.colors.light.textSecondary, textAlign: 'center', marginBottom: 12 },
-  tipBtn: { paddingVertical: 12, backgroundColor: '#fef3c7', borderRadius: 8, alignItems: 'center', marginBottom: 8 },
+  tipBtn: { paddingVertical: 12, backgroundColor: '#fef3c7', borderRadius: 8, alignItems: 'center', marginBottom: 8, flexDirection: 'row', justifyContent: 'center', gap: 10 },
   tipBtnText: { fontSize: 14, fontWeight: '600', color: '#92400e' },
-  tipForm: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  tipInput: { flex: 1, borderWidth: 1, borderColor: theme.colors.light.border, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14 },
-  tipSendBtn: { paddingHorizontal: 16, backgroundColor: theme.colors.secondary, borderRadius: 8, justifyContent: 'center' },
-  tipSendText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  tipBalanceText: { fontSize: 12, color: '#92400e' },
+  tipForm: { marginBottom: 12 },
+  tipPresetsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
+  tipPresetBtn: { flex: 1, minWidth: '45%', paddingVertical: 12, backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: theme.colors.secondary, alignItems: 'center' },
+  tipPresetText: { fontSize: 14, fontWeight: '600', color: '#92400e' },
+  buyPackBtn: { paddingVertical: 10, backgroundColor: '#f3f4f6', borderRadius: 8, alignItems: 'center' },
+  buyPackText: { fontSize: 13, fontWeight: '600', color: theme.colors.primary },
   commentsBtn: { paddingVertical: 14, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: theme.colors.light.border, alignItems: 'center', marginBottom: 20 },
   commentsBtnText: { fontSize: 14, fontWeight: '600', color: theme.colors.primary },
   updatesSection: { marginTop: 4 },

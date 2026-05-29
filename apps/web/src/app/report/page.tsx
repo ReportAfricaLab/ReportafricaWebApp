@@ -31,8 +31,8 @@ function ReportContent() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showTip, setShowTip] = useState(false);
-  const [tipAmount, setTipAmount] = useState('');
-  const [tipEmail, setTipEmail] = useState('');
+  const [tipBalance, setTipBalance] = useState(0);
+  const [tipCurrency, setTipCurrency] = useState('NGN');
   const [updates, setUpdates] = useState<any[]>([]);
   const [updateText, setUpdateText] = useState('');
 
@@ -41,7 +41,13 @@ function ReportContent() {
     api.reports.getById(id).then(setReport).finally(() => setLoading(false));
     api.comments.getByReport(id).then((data) => setComments(data.data || [])).catch(() => {});
     fetchAPI(`/report-updates/report/${id}`).then((data) => setUpdates(data.data || [])).catch(() => {});
-  }, [id]);
+    if (token) {
+      fetchAPI('/tips/balance', { token }).then((data) => {
+        setTipBalance(data.balance || 0);
+        setTipCurrency(data.currency || 'NGN');
+      }).catch(() => {});
+    }
+  }, [id, token]);
 
   useEffect(() => {
     if (!token || !report?.author?.id) return;
@@ -68,13 +74,14 @@ function ReportContent() {
     }
   };
 
-  const handleTip = async () => {
-    const amount = Number(tipAmount);
-    if (!amount || amount < 100 || !tipEmail) return;
+  const handleTip = async (amount: number) => {
+    if (!token || !id) return;
+    if (tipBalance < amount) { alert(`Insufficient balance. You have ${tipCurrency} ${tipBalance}. Buy a tip pack first.`); return; }
     try {
-      await api.tips.create({ reportId: id!, amount, email: tipEmail });
-      setShowTip(false); setTipAmount(''); setTipEmail('');
-      alert('Tip initiated! Complete payment to send.');
+      const res = await fetchAPI('/tips', { method: 'POST', body: JSON.stringify({ reportId: id, amount }), token });
+      setTipBalance(res.remainingBalance ?? tipBalance - amount);
+      alert(`Tip sent! 🎉`);
+      setShowTip(false);
     } catch {}
   };
 
@@ -166,14 +173,24 @@ function ReportContent() {
         </div>
 
         {showTip && (
-          <div className="flex gap-2 mt-4 p-3 bg-amber-50 rounded-lg">
-            <input value={tipAmount} onChange={(e) => setTipAmount(e.target.value)} placeholder="Amount (min 100)"
-              type="number" className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-            <input value={tipEmail} onChange={(e) => setTipEmail(e.target.value)} placeholder="Your email"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-            <button onClick={handleTip} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600">
-              Send
-            </button>
+          <div className="mt-4 p-4 bg-amber-50 rounded-lg">
+            <p className="text-xs text-amber-800 mb-3">Balance: {tipCurrency} {tipBalance.toLocaleString()}</p>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {({
+                NGN: [1500, 3000, 5000, 10000],
+                GHS: [15, 30, 50, 100],
+                KES: [150, 300, 500, 1000],
+                ZAR: [20, 50, 100, 200],
+                UGX: [5000, 10000, 20000, 50000],
+                RWF: [1500, 3000, 5000, 10000],
+              }[tipCurrency] || [1500, 3000, 5000, 10000]).map((amt: number) => (
+                <button key={amt} onClick={() => handleTip(amt)}
+                  className="py-2 bg-white border border-amber-300 rounded-lg text-sm font-medium text-amber-800 hover:bg-amber-100 transition">
+                  {amt.toLocaleString()}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-amber-600 text-center">Need more? Buy a tip pack from your profile.</p>
           </div>
         )}
       </div>

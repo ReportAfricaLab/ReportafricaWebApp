@@ -1,10 +1,26 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TipEntity, ReportEntity } from '../../database/entities';
+import { TipEntity, ReportEntity, UserEntity } from '../../database/entities';
 import { PaystackService } from '../donations/paystack.service';
+import { KoraPayService } from '../payments/korapay.service';
 import { EarningsService } from '../earnings/earnings.service';
 import { NotificationsService } from '../notifications/notifications.service';
+
+const COUNTRY_CURRENCY: Record<string, string> = {
+  NG: 'NGN', GH: 'GHS', KE: 'KES', ZA: 'ZAR', UG: 'UGX', RW: 'RWF',
+};
+
+const TIP_PACKS: Record<string, { cost: number; value: number }[]> = {
+  NGN: [{ cost: 2000, value: 1500 }, { cost: 5000, value: 4000 }, { cost: 10000, value: 8500 }, { cost: 25000, value: 22000 }],
+  GHS: [{ cost: 20, value: 15 }, { cost: 50, value: 40 }, { cost: 100, value: 85 }, { cost: 250, value: 220 }],
+  KES: [{ cost: 200, value: 150 }, { cost: 500, value: 400 }, { cost: 1000, value: 850 }, { cost: 2500, value: 2200 }],
+  ZAR: [{ cost: 30, value: 20 }, { cost: 60, value: 50 }, { cost: 120, value: 100 }, { cost: 250, value: 220 }],
+  UGX: [{ cost: 7000, value: 5000 }, { cost: 15000, value: 12000 }, { cost: 25000, value: 20000 }, { cost: 60000, value: 50000 }],
+  RWF: [{ cost: 2000, value: 1500 }, { cost: 5000, value: 4000 }, { cost: 10000, value: 8500 }, { cost: 25000, value: 22000 }],
+};
+
+const PLATFORM_CUT = 0.20; // 20%
 
 @Injectable()
 export class TipsService {
@@ -13,86 +29,163 @@ export class TipsService {
     private readonly tipRepo: Repository<TipEntity>,
     @InjectRepository(ReportEntity)
     private readonly reportRepo: Repository<ReportEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepo: Repository<UserEntity>,
     private readonly paystackService: PaystackService,
+    private readonly koraPayService: KoraPayService,
     private readonly earningsService: EarningsService,
     private readonly notifications: NotificationsService,
   ) {}
 
-  async initiateTip(dto: { reportId: string; amount: number; email: string; message?: string; tipperId?: string }) {
-    const report = await this.reportRepo.findOne({ where: { id: dto.reportId } });
-    if (!report) throw new NotFoundException('Report not found');
-    if (dto.amount < 100) throw new BadRequestException('Minimum tip is 100');
+  // === BUY TIP PACK ===
 
+  async buyPack(userId: string | null, dto: { packIndex: number; email: string; country: string }) {
+    const currency = COUNTRY_CURRENCY[dto.country] || 'NGN';
+    const packs = TIP_PACKS[currency];
+    if (!packs || dto.packIndex < 0 || dto.packIndex >= packs.length) {
+      throw new BadRequestException('Invalid pack selection');
+    }
+
+    const pack = packs[dto.packIndex];
     const reference = this.paystackService.generateReference();
-    const currency = 'NGN'; // Derive from report country in production
-
-    const tip = this.tipRepo.create({
-      reportId: dto.reportId,
-      reporterId: report.authorId,
-      tipperId: dto.tipperId || null,
-      amount: dto.amount,
-      currency,
-      message: dto.message,
-      status: 'pending',
-      paymentReference: reference,
-    });
-    await this.tipRepo.save(tip);
 
     const payment = await this.paystackService.initializePayment({
       email: dto.email,
-      amount: dto.amount * 100, // kobo
+      amount: pack.cost * 100, // kobo/pesewas
       currency,
       reference,
-      metadata: { tipId: tip.id, reportId: dto.reportId, reporterId: report.authorId },
+      metadata: { type: 'tip_pack', userId, packIndex: dto.packIndex, packValue: pack.value, currency },
     });
 
-    return { tip, paymentUrl: payment.data?.authorization_url, reference };
+    return { paymentUrl: payment.data?.authorization_url, reference, pack };
   }
 
-  async verifyTip(reference: string) {
-    const tip = await this.tipRepo.findOne({ where: { paymentReference: reference } });
-    if (!tip) throw new NotFoundException('Tip not found');
-
+  async verifyPackPurchase(reference: string, userId?: string) {
     const verification = await this.paystackService.verifyPayment(reference);
-
-    if (verification.data?.status === 'success') {
-      tip.status = 'success';
-      await this.tipRepo.save(tip);
-
-      // Record in earnings (platform takes 10%, reporter gets 90%)
-      const reporterAmount = tip.amount * 0.9;
-      await this.earningsService.recordEarning({
-        reporterId: tip.reporterId,
-        amount: reporterAmount,
-        currency: tip.currency,
-        source: 'tip',
-        sourceId: tip.reportId,
-        description: tip.message ? `Tip: "${tip.message}"` : 'Tip received',
-        paymentReference: reference,
-      });
-
-      // Notify reporter
-      await this.notifications.sendToUser(tip.reporterId, {
-        title: '💰 You received a tip!',
-        body: `Someone tipped ₦${tip.amount} on your report${tip.message ? `: "${tip.message}"` : ''}`,
-        data: { type: 'tip', reportId: tip.reportId },
-      });
-
-      return { status: 'success', tip };
+    if (verification.data?.status !== 'success') {
+      return { status: 'failed' };
     }
 
-    tip.status = 'failed';
-    await this.tipRepo.save(tip);
-    return { status: 'failed', tip };
+    const metadata = verification.data?.metadata;
+    if (!metadata || metadata.type !== 'tip_pack') {
+      return { status: 'failed', message: 'Not a tip pack payment' };
+    }
+
+    const targetUserId = userId || metadata.userId;
+    if (!targetUserId) return { status: 'failed', message: 'No user to credit' };
+
+    // Credit balance
+    const currency = metadata.currency || 'NGN';
+    await this.userRepo
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({
+        tipBalance: () => `tip_balance + ${metadata.packValue}`,
+        tipCurrency: currency,
+      })
+      .where('id = :id', { id: targetUserId })
+      .execute();
+
+    const user = await this.userRepo.findOne({ where: { id: targetUserId } });
+    return { status: 'success', newBalance: user?.tipBalance || 0, currency };
   }
 
-  async handleWebhook(event: string, data: any) {
-    if (event === 'charge.success' && data.reference?.startsWith('RA_')) {
-      const tip = await this.tipRepo.findOne({ where: { paymentReference: data.reference } });
-      if (tip && tip.status === 'pending') {
-        await this.verifyTip(data.reference);
+  // === SEND TIP ===
+
+  async sendTip(tipperId: string, dto: { reportId: string; amount: number; message?: string }) {
+    const report = await this.reportRepo.findOne({ where: { id: dto.reportId } });
+    if (!report) throw new NotFoundException('Report not found');
+
+    // Self-tip prevention
+    if (tipperId === report.authorId) {
+      throw new ForbiddenException('Cannot tip your own report');
+    }
+
+    // Check tipper balance
+    const tipper = await this.userRepo.findOne({ where: { id: tipperId } });
+    if (!tipper) throw new NotFoundException('User not found');
+    if (tipper.tipBalance < dto.amount) {
+      throw new BadRequestException('Insufficient tip balance. Buy a tip pack first.');
+    }
+
+    // Get reporter for payout
+    const reporter = await this.userRepo.findOne({ where: { id: report.authorId } });
+    if (!reporter) throw new NotFoundException('Reporter not found');
+
+    const currency = tipper.tipCurrency || COUNTRY_CURRENCY[tipper.country] || 'NGN';
+    const reporterAmount = Math.round(dto.amount * (1 - PLATFORM_CUT));
+
+    // Deduct from tipper balance
+    await this.userRepo
+      .createQueryBuilder()
+      .update(UserEntity)
+      .set({ tipBalance: () => `tip_balance - ${dto.amount}` })
+      .where('id = :id AND tip_balance >= :amount', { id: tipperId, amount: dto.amount })
+      .execute();
+
+    // Create tip record
+    const tip = this.tipRepo.create({
+      reportId: dto.reportId,
+      reporterId: report.authorId,
+      tipperId,
+      amount: dto.amount,
+      currency,
+      message: dto.message,
+      status: 'success',
+      paymentReference: `TIP_${Date.now()}`,
+    });
+    await this.tipRepo.save(tip);
+
+    // Pay reporter via KoraPay (if bank details set)
+    if (reporter.bankAccountNumber && reporter.bankCode) {
+      try {
+        await this.koraPayService.initializeSplitPayment({
+          amount: reporterAmount,
+          currency,
+          customerEmail: reporter.email,
+          customerName: reporter.displayName,
+          reference: this.koraPayService.generateReference(),
+          reporterBankAccount: {
+            bankCode: reporter.bankCode,
+            accountNumber: reporter.bankAccountNumber,
+            accountName: reporter.bankAccountName,
+          },
+          platformSplitPercent: 0, // Already took our cut
+          metadata: { tipId: tip.id, reporterId: reporter.id },
+        });
+      } catch {
+        // If payout fails, still record earnings for manual payout later
       }
     }
+
+    // Record earnings
+    await this.earningsService.recordEarning({
+      reporterId: report.authorId,
+      amount: reporterAmount,
+      currency,
+      source: 'tip',
+      sourceId: tip.id,
+      description: dto.message ? `Tip: "${dto.message}"` : 'Tip received',
+      paymentReference: tip.paymentReference,
+      payerName: tipper.displayName,
+    });
+
+    // Notify reporter
+    await this.notifications.sendToUser(report.authorId, {
+      title: '💰 You received a tip!',
+      body: `${tipper.displayName} tipped ${currency} ${dto.amount} on your report${dto.message ? `: "${dto.message}"` : ''}`,
+      data: { type: 'tip', reportId: dto.reportId },
+    });
+
+    return { status: 'success', tip, remainingBalance: tipper.tipBalance - dto.amount };
+  }
+
+  // === QUERIES ===
+
+  async getBalance(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    return { balance: user.tipBalance, currency: user.tipCurrency || COUNTRY_CURRENCY[user.country] || 'NGN' };
   }
 
   async getReportTips(reportId: string) {
@@ -113,5 +206,13 @@ export class TipsService {
       take: limit,
       relations: ['report'],
     });
+  }
+
+  // === WEBHOOK ===
+
+  async handleWebhook(event: string, data: any) {
+    if (event === 'charge.success' && data.metadata?.type === 'tip_pack') {
+      await this.verifyPackPurchase(data.reference, data.metadata.userId);
+    }
   }
 }

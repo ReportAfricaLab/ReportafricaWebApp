@@ -76,6 +76,12 @@ export class UserEntity {
   @Column({ name: 'bank_account_name', nullable: true })
   bankAccountName: string;
 
+  @Column({ name: 'tip_balance', type: 'int', default: 0 })
+  tipBalance: number;
+
+  @Column({ name: 'tip_currency', length: 3, nullable: true })
+  tipCurrency: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
