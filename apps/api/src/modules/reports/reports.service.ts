@@ -72,7 +72,7 @@ export class ReportsService {
         (report."comment_count" * 2) +
         (report."view_count" * 0.1) -
         (report.downvotes * 2) +
-        (COALESCE(author."trustScore", 0) * 0.5) +
+        (COALESCE(author."trust_score", 0) * 0.5) +
         (CASE report."verification_level"
           WHEN 'officially_verified' THEN 50
           WHEN 'ai_verified' THEN 30
@@ -90,15 +90,34 @@ export class ReportsService {
       )`, 'feed_score')
       .orderBy('feed_score', 'DESC');
 
-    // Geographic boost
+    // Geographic boost — merge into feed_score to avoid DISTINCT/ORDER BY conflict
     if (lat && lng) {
       const radiusDegrees = 10 / 111;
       qb.addSelect(`(
-        CASE WHEN report.latitude BETWEEN ${lat - radiusDegrees} AND ${lat + radiusDegrees}
+        (report.upvotes * 3) +
+        (report."comment_count" * 2) +
+        (report."view_count" * 0.1) -
+        (report.downvotes * 2) +
+        (COALESCE(author."trust_score", 0) * 0.5) +
+        (CASE report."verification_level"
+          WHEN 'officially_verified' THEN 50
+          WHEN 'ai_verified' THEN 30
+          WHEN 'community_verified' THEN 20
+          WHEN 'trusted_reporter_verified' THEN 25
+          ELSE 0
+        END) +
+        (CASE report.severity
+          WHEN 'critical' THEN 40
+          WHEN 'high' THEN 20
+          WHEN 'medium' THEN 5
+          ELSE 0
+        END) -
+        (EXTRACT(EPOCH FROM (NOW() - report."created_at")) / 3600 * 2) +
+        (CASE WHEN report.latitude BETWEEN ${lat - radiusDegrees} AND ${lat + radiusDegrees}
           AND report.longitude BETWEEN ${lng - radiusDegrees} AND ${lng + radiusDegrees}
-        THEN 30 ELSE 0 END
-      )`, 'geo_bonus');
-      qb.orderBy('feed_score + geo_bonus', 'DESC');
+        THEN 30 ELSE 0 END)
+      )`, 'feed_score_geo');
+      qb.orderBy('feed_score_geo', 'DESC');
     }
 
     const total = await qb.getCount();

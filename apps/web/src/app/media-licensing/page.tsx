@@ -12,7 +12,7 @@ export default function MediaLicensingPage() {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    api.reports.feed('NG').then(setReports).catch(() => {});
+    api.reports.feed('NG').then((res: any) => setReports(Array.isArray(res) ? res : res.data || [])).catch(() => {});
   }, []);
 
   const handleRequest = async (e: React.FormEvent) => {

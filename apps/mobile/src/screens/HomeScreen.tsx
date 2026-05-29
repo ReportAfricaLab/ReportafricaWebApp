@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
 import { reportsAPI } from '../services/api';
@@ -37,7 +37,7 @@ export default function HomeScreen() {
   const loadFeed = async () => {
     try {
       const res = await reportsAPI.getFeed(country, 1, location?.latitude, location?.longitude);
-      setReports(res.data);
+      setReports(res.data?.data || []);
     } catch (err) {
       console.error('Failed to load feed:', err);
     }
@@ -81,9 +81,12 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.brandName}>{brandName}</Text>
-            <Text style={styles.subtitle}>Live Reports</Text>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+            <View>
+              <Text style={styles.brandName}>{brandName}</Text>
+              <Text style={styles.subtitle}>Live Reports</Text>
+            </View>
           </View>
           <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Search')}>
             <Text style={styles.searchBtnText}>🔍</Text>
@@ -119,6 +122,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background },
   header: { paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  logo: { width: 40, height: 40 },
   brandName: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.primary },
   subtitle: { fontSize: theme.fontSize.sm, color: theme.colors.light.textSecondary, marginTop: 2 },
   createBtn: { backgroundColor: theme.colors.emergency, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },

@@ -8,6 +8,34 @@ const COUNTRIES = [
   { code: 'GH', name: 'Ghana' },
   { code: 'KE', name: 'Kenya' },
   { code: 'ZA', name: 'South Africa' },
+  { code: 'UG', name: 'Uganda' },
+  { code: 'RW', name: 'Rwanda' },
+  { code: 'TZ', name: 'Tanzania' },
+  { code: 'ET', name: 'Ethiopia' },
+  { code: 'SN', name: 'Senegal' },
+  { code: 'CM', name: 'Cameroon' },
+  { code: 'EG', name: 'Egypt' },
+  { code: 'MA', name: 'Morocco' },
+  { code: 'DZ', name: 'Algeria' },
+  { code: 'TN', name: 'Tunisia' },
+  { code: 'CI', name: 'C\u00f4te d\'Ivoire' },
+  { code: 'AO', name: 'Angola' },
+  { code: 'MZ', name: 'Mozambique' },
+  { code: 'CD', name: 'DR Congo' },
+  { code: 'SD', name: 'Sudan' },
+  { code: 'LY', name: 'Libya' },
+  { code: 'ZW', name: 'Zimbabwe' },
+  { code: 'ZM', name: 'Zambia' },
+  { code: 'MW', name: 'Malawi' },
+  { code: 'BJ', name: 'Benin' },
+  { code: 'TG', name: 'Togo' },
+  { code: 'ML', name: 'Mali' },
+  { code: 'BF', name: 'Burkina Faso' },
+  { code: 'NE', name: 'Niger' },
+  { code: 'SL', name: 'Sierra Leone' },
+  { code: 'LR', name: 'Liberia' },
+  { code: 'SO', name: 'Somalia' },
+  { code: 'MG', name: 'Madagascar' },
 ];
 
 const CATEGORIES = [
@@ -41,7 +69,7 @@ export default function FeedPage() {
       : api.reports.feed(country, 1, location?.lat, location?.lng);
 
     fetchReports
-      .then(setReports)
+      .then((res: any) => setReports(Array.isArray(res) ? res : res.data || []))
       .catch(() => setReports([]))
       .finally(() => setLoading(false));
   }, [country, category, location]);

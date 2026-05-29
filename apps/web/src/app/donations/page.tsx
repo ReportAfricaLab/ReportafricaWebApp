@@ -40,7 +40,7 @@ export default function DonationsPage() {
     const fetch = category
       ? api.donations.byCategory(country, category)
       : api.donations.campaignFeed(country);
-    fetch.then(setCampaigns).catch(() => setCampaigns([])).finally(() => setLoading(false));
+    fetch.then((res: any) => setCampaigns(Array.isArray(res) ? res : res.data || [])).catch(() => setCampaigns([])).finally(() => setLoading(false));
   }, [country, category]);
 
   return (

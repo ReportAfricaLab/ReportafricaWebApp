@@ -18,4 +18,16 @@ config.resolver.unstable_enablePackageExports = true;
 config.resolver.unstable_conditionNames = ['browser', 'require', 'react-native'];
 config.resolver.sourceExts = [...(config.resolver.sourceExts || []), 'cjs'];
 
+// Fix Sentry internal module resolution — Metro with package exports
+// can't resolve some CJS tracing sub-modules
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  // Let Sentry internal CJS requires bypass package exports
+  if (moduleName.startsWith('./tracing/') && context.originModulePath?.includes('@sentry')) {
+    let resolved = path.resolve(path.dirname(context.originModulePath), moduleName);
+    if (!path.extname(resolved)) resolved += '.js';
+    return { type: 'sourceFile', filePath: resolved };
+  }
+  return context.resolveRequest(context, moduleName, platform);
+};
+
 module.exports = config;

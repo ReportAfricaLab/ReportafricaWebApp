@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Replace with your computer's local IP (run: ipconfig | findstr IPv4)
+// For Android emulator use 10.0.2.2, for physical device use your computer's IP (run: ipconfig | findstr IPv4)
 const LOCAL_IP = '10.162.41.17';
 const API_BASE_URL = __DEV__ ? `http://${LOCAL_IP}:3001/api/v1` : 'https://api.reportafrica.com/api/v1';
 export const WS_URL = __DEV__ ? `http://${LOCAL_IP}:3001` : 'https://api.reportafrica.com';
