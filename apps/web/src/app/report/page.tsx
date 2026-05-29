@@ -4,6 +4,15 @@ import { useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+async function fetchAPI(endpoint: string, options: any = {}) {
+  const { token, ...opts } = options;
+  const headers: any = { 'Content-Type': 'application/json', ...opts.headers };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(`${API_URL}${endpoint}`, { ...opts, headers });
+  return res.json();
+}
+
 const SEVERITY_COLORS: Record<string, string> = {
   critical: 'bg-[#D92D20] text-white',
   high: 'bg-[#F97316] text-white',
@@ -21,11 +30,17 @@ function ReportContent() {
   const [commentText, setCommentText] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showTip, setShowTip] = useState(false);
+  const [tipAmount, setTipAmount] = useState('');
+  const [tipEmail, setTipEmail] = useState('');
+  const [updates, setUpdates] = useState<any[]>([]);
+  const [updateText, setUpdateText] = useState('');
 
   useEffect(() => {
     if (!id) return;
     api.reports.getById(id).then(setReport).finally(() => setLoading(false));
     api.comments.getByReport(id).then((data) => setComments(data.data || [])).catch(() => {});
+    fetchAPI(`/report-updates/report/${id}`).then((data) => setUpdates(data.data || [])).catch(() => {});
   }, [id]);
 
   useEffect(() => {
@@ -48,6 +63,24 @@ function ReportContent() {
       await api.follows.follow(token, report.author.id);
       setIsFollowing(true);
     }
+  };
+
+  const handleTip = async () => {
+    const amount = Number(tipAmount);
+    if (!amount || amount < 100 || !tipEmail) return;
+    try {
+      await api.tips.create({ reportId: id!, amount, email: tipEmail });
+      setShowTip(false); setTipAmount(''); setTipEmail('');
+      alert('Tip initiated! Complete payment to send.');
+    } catch {}
+  };
+
+  const handlePostUpdate = async () => {
+    if (!token || !id || !updateText.trim()) return;
+    await fetchAPI('/report-updates', { method: 'POST', body: JSON.stringify({ reportId: id, text: updateText.trim() }), token });
+    const data = await fetchAPI(`/report-updates/report/${id}`);
+    setUpdates(data.data || []);
+    setUpdateText('');
   };
 
   const handleComment = async () => {
@@ -110,7 +143,7 @@ function ReportContent() {
           </div>
         </div>
 
-        {/* Voting */}
+        {/* Voting + Tip */}
         <div className="flex items-center gap-4">
           <button onClick={() => handleVote('upvote')}
             className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition text-sm font-medium">
@@ -120,8 +153,58 @@ function ReportContent() {
             className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition text-sm font-medium">
             ↓ Dispute ({report.downvotes})
           </button>
-          <span className="ml-auto text-sm text-gray-400">👁️ {report.viewCount} views</span>
+          {token && report.author?.id && (
+            <button onClick={() => setShowTip(!showTip)}
+              className="ml-auto px-4 py-2 bg-amber-50 text-amber-800 rounded-lg hover:bg-amber-100 transition text-sm font-medium">
+              💰 Tip
+            </button>
+          )}
+          <span className="text-sm text-gray-400">👁️ {report.viewCount} views</span>
         </div>
+
+        {showTip && (
+          <div className="flex gap-2 mt-4 p-3 bg-amber-50 rounded-lg">
+            <input value={tipAmount} onChange={(e) => setTipAmount(e.target.value)} placeholder="Amount (min 100)"
+              type="number" className="w-24 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <input value={tipEmail} onChange={(e) => setTipEmail(e.target.value)} placeholder="Your email"
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <button onClick={handleTip} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600">
+              Send
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Report Updates */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">📝 Updates ({updates.length})</h2>
+
+        {token && report.authorId === (undefined) && null}
+        {token && (
+          <div className="flex gap-2 mb-4">
+            <input value={updateText} onChange={(e) => setUpdateText(e.target.value)}
+              placeholder="Post an update (author only)..." maxLength={500}
+              className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#0F7B6C]" />
+            <button onClick={handlePostUpdate}
+              className="px-4 py-2.5 bg-[#0F7B6C] text-white rounded-lg text-sm font-medium hover:bg-[#0B6E4F] transition">
+              Post
+            </button>
+          </div>
+        )}
+
+        {updates.length === 0 ? (
+          <p className="text-center text-gray-400 text-sm py-4">No updates yet</p>
+        ) : (
+          <div className="space-y-3">
+            {updates.map((u: any) => (
+              <div key={u.id} className="border-l-2 border-[#0F7B6C] pl-3 py-1">
+                <p className="text-xs text-[#0F7B6C] font-medium capitalize">{u.type === 'resolution' ? '✅' : '📝'} {u.type}</p>
+                <p className="text-sm text-gray-700">{u.text}</p>
+                <p className="text-xs text-gray-400 mt-1">{new Date(u.createdAt).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Comments Section */}

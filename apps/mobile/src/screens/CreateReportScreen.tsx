@@ -4,6 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAppStore } from '../store/useAppStore';
 import { reportsAPI } from '../services/api';
 import { getCurrentLocation } from '../services/location';
+import { offlineQueue } from '../services/offline-queue';
+import { voiceRecorder } from '../services/voice-recorder';
 import { theme } from '../theme';
 import { REPORT_CATEGORY_LABELS } from '../constants';
 import axios from 'axios';
@@ -23,6 +25,8 @@ export default function CreateReportScreen() {
   const [longitude, setLongitude] = useState<number | null>(null);
   const [mediaFiles, setMediaFiles] = useState<{ uri: string; type: string; fileName: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -70,6 +74,32 @@ export default function CreateReportScreen() {
     return urls;
   };
 
+  const handleVoiceRecord = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      setTranscribing(true);
+      try {
+        const uri = await voiceRecorder.stopRecording();
+        if (uri) {
+          const result = await voiceRecorder.uploadAndTranscribe(uri, 'en');
+          if (result.englishText) {
+            setDescription((prev) => prev ? `${prev}\n${result.englishText}` : result.englishText);
+          }
+        }
+      } catch {
+        Alert.alert('Error', 'Voice transcription failed');
+      }
+      setTranscribing(false);
+    } else {
+      try {
+        await voiceRecorder.startRecording();
+        setIsRecording(true);
+      } catch {
+        Alert.alert('Error', 'Could not start recording. Check microphone permissions.');
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!title || !description || !category) {
       Alert.alert('Missing Fields', 'Please fill in title, description, and category.');
@@ -82,6 +112,16 @@ export default function CreateReportScreen() {
 
     setSubmitting(true);
     try {
+      // Check if online
+      const online = await offlineQueue.isOnline();
+      if (!online) {
+        await offlineQueue.addToQueue({ title, description, category, severity, latitude: latitude!, longitude: longitude!, isAnonymous, mediaUris: mediaFiles.map((m) => m.uri) });
+        Alert.alert('Saved Offline', 'Your report has been saved and will be submitted when you reconnect.');
+        setTitle(''); setDescription(''); setCategory(''); setMediaFiles([]);
+        setSubmitting(false);
+        return;
+      }
+
       const mediaUrls = await uploadMedia();
       await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, mediaUrls });
       Alert.alert('Report Submitted', 'Your report has been submitted successfully.');
@@ -119,6 +159,9 @@ export default function CreateReportScreen() {
       {/* Description */}
       <Text style={styles.label}>Description</Text>
       <TextInput style={[styles.input, styles.textArea]} value={description} onChangeText={setDescription} placeholder="Describe what is happening..." multiline numberOfLines={5} maxLength={5000} />
+      <TouchableOpacity style={[styles.voiceBtn, isRecording && styles.voiceBtnRecording]} onPress={handleVoiceRecord} disabled={transcribing}>
+        <Text style={styles.voiceBtnText}>{transcribing ? '⏳ Transcribing...' : isRecording ? '⏹️ Stop Recording' : '🎙️ Voice to Text'}</Text>
+      </TouchableOpacity>
 
       {/* Severity */}
       <Text style={styles.label}>Severity</Text>
@@ -209,4 +252,7 @@ const styles = StyleSheet.create({
   mediaImage: { width: '100%', height: '100%' },
   mediaRemove: { position: 'absolute', top: 2, right: 2, width: 20, height: 20, borderRadius: 10, backgroundColor: '#D92D20', alignItems: 'center', justifyContent: 'center' },
   mediaRemoveText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  voiceBtn: { marginTop: 8, paddingVertical: 10, backgroundColor: '#ede9fe', borderRadius: 8, alignItems: 'center' },
+  voiceBtnRecording: { backgroundColor: '#fecaca' },
+  voiceBtnText: { fontSize: 13, fontWeight: '600', color: '#6d28d9' },
 });

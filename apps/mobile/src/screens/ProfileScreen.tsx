@@ -55,6 +55,12 @@ export default function ProfileScreen() {
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Referral')}>
+          <Text style={styles.menuIcon}>🎁</Text>
+          <Text style={styles.menuText}>Referral Program</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('LicenseRequests')}>
           <Text style={styles.menuIcon}>📄</Text>
           <Text style={styles.menuText}>License Requests</Text>
