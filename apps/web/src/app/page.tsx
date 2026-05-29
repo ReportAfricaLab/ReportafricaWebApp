@@ -58,8 +58,11 @@ export default function Home() {
               { title: 'Geo-Based Map', desc: 'Interactive incident map showing live events, traffic, and emergencies near you.', color: 'text-info' },
               { title: 'AI Verification', desc: 'AI-powered content verification to combat fake news and misinformation.', color: 'text-primary' },
               { title: 'Emergency SOS', desc: 'One-tap emergency reporting with automatic location sharing and alerts.', color: 'text-emergency' },
-              { title: 'Community Support', desc: 'Help fellow citizens through verified humanitarian fundraising campaigns.', color: 'text-humanitarian' },
+              { title: 'Community Helping Hands', desc: 'Help fellow citizens through verified humanitarian fundraising campaigns.', color: 'text-humanitarian' },
               { title: 'Anonymous Reports', desc: 'Report safely with identity protection, face blur, and voice masking.', color: 'text-secondary' },
+              { title: 'Election Monitoring', desc: 'Real-time election reporting, incident tracking, and live result updates.', color: 'text-primary' },
+              { title: 'Media Licensing', desc: 'Monetize your citizen journalism. Media houses can license your content.', color: 'text-info' },
+              { title: 'Trust & Reputation', desc: 'Build your reporter credibility with AI-scored trust levels and verification badges.', color: 'text-secondary' },
             ].map((feature) => (
               <div key={feature.title} className="p-6 rounded-xl border border-gray-100 hover:shadow-lg transition">
                 <h4 className={`text-lg font-semibold mb-2 ${feature.color}`}>{feature.title}</h4>
@@ -80,6 +83,22 @@ export default function Home() {
                 <span className="text-sm font-medium text-gray-700">{cat}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Download / CTA */}
+      <section id="download" className="py-20 px-4 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h3 className="text-3xl font-bold mb-4">Available Across Africa</h3>
+          <p className="text-gray-600 mb-8">Covering 32+ African countries. Download the app or use the web platform to start reporting.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/register" className="px-8 py-4 text-lg font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition">
+              Get Started Free
+            </a>
+            <a href="/feed" className="px-8 py-4 text-lg font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition">
+              Browse Reports
+            </a>
           </div>
         </div>
       </section>

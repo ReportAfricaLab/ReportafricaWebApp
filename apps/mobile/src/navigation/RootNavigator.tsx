@@ -4,9 +4,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAppStore } from '../store/useAppStore';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import LandingScreen from '../screens/LandingScreen';
 import CampaignDetailScreen from '../screens/CampaignDetailScreen';
 import ReportDetailScreen from '../screens/ReportDetailScreen';
 import LicenseRequestsScreen from '../screens/LicenseRequestsScreen';
+import InfoScreen from '../screens/InfoScreen';
 import CreateReportScreen from '../screens/CreateReportScreen';
 import GoLiveScreen from '../screens/GoLiveScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -28,6 +30,7 @@ export default function RootNavigator() {
             <Stack.Screen name="ReportDetail" component={ReportDetailScreen} options={{ headerShown: true, headerTitle: 'Report', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="CampaignDetail" component={CampaignDetailScreen} options={{ headerShown: true, headerTitle: 'Campaign', headerTintColor: '#F97316' }} />
             <Stack.Screen name="LicenseRequests" component={LicenseRequestsScreen} options={{ headerShown: true, headerTitle: 'License Requests', headerTintColor: '#0F7B6C' }} />
+            <Stack.Screen name="Info" component={InfoScreen} options={{ headerShown: true, headerTitle: 'Info', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="CreateReport" component={CreateReportScreen} options={{ headerShown: true, headerTitle: 'Create Report', headerTintColor: '#0F7B6C' }} />
             <Stack.Screen name="GoLive" component={GoLiveScreen} />
             <Stack.Screen name="Search" component={SearchScreen} />
@@ -36,8 +39,10 @@ export default function RootNavigator() {
           </>
         ) : (
           <>
+            <Stack.Screen name="Landing" component={LandingScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen name="Info" component={InfoScreen} options={{ headerShown: true, headerTitle: 'Info', headerTintColor: '#0F7B6C' }} />
           </>
         )}
       </Stack.Navigator>

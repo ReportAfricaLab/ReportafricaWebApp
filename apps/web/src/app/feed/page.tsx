@@ -76,14 +76,15 @@ export default function FeedPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      {/* Country Tabs */}
-      <div className="flex items-center gap-2 mb-6">
-        {COUNTRIES.map((c) => (
-          <button key={c.code} onClick={() => setCountry(c.code)}
-            className={`px-4 py-2 text-sm font-medium rounded-full transition ${country === c.code ? 'bg-[#0F7B6C] text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-[#0F7B6C]'}`}>
-            {c.name}
-          </button>
-        ))}
+      {/* Country Selector */}
+      <div className="flex items-center gap-3 mb-6">
+        <select value={country} onChange={(e) => setCountry(e.target.value)}
+          className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#0F7B6C] cursor-pointer">
+          {COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code}>{c.name}</option>
+          ))}
+        </select>
+        <span className="text-xs text-gray-400">Live Reports</span>
       </div>
 
       {/* Category Filter */}

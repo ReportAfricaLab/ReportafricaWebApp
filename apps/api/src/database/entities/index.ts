@@ -8,3 +8,7 @@ export { EarningsEntity } from './earnings.entity';
 export { LivestreamEntity } from './livestream.entity';
 export { ElectionReportEntity } from './election-report.entity';
 export { ChatMessageEntity } from './chat-message.entity';
+export { CommentEntity } from './comment.entity';
+export { FollowEntity } from './follow.entity';
+export { ReportUpdateEntity } from './report-update.entity';
+export { TipEntity } from './tip.entity';

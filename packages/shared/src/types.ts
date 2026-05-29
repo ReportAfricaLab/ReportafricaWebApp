@@ -116,3 +116,35 @@ export interface DonationCampaign {
   isActive: boolean;
   createdAt: Date;
 }
+
+export interface Comment {
+  id: string;
+  reportId: string;
+  userId: string;
+  text: string;
+  parentId?: string;
+  likes: number;
+  createdAt: Date;
+  replies?: Comment[];
+}
+
+export interface ReportUpdate {
+  id: string;
+  reportId: string;
+  authorId: string;
+  text: string;
+  media: MediaItem[];
+  type: 'update' | 'resolution' | 'escalation';
+  createdAt: Date;
+}
+
+export interface Tip {
+  id: string;
+  reportId: string;
+  reporterId: string;
+  amount: number;
+  currency: string;
+  message?: string;
+  status: 'pending' | 'success' | 'failed';
+  createdAt: Date;
+}

@@ -7,6 +7,7 @@ import { ReportEntity } from '../../database/entities';
 import { CreateReportDto } from './dto/create-report.dto';
 import { ModerationService } from '../moderation/moderation.service';
 import { TrustService } from '../trust/trust.service';
+import { FollowsService } from '../follows/follows.service';
 
 @Injectable()
 export class ReportsService {
@@ -15,6 +16,7 @@ export class ReportsService {
     private readonly reportRepo: Repository<ReportEntity>,
     private readonly moderationService: ModerationService,
     private readonly trustService: TrustService,
+    private readonly followsService: FollowsService,
     @Optional() @Inject(CACHE_MANAGER) private readonly cache?: Cache,
   ) {}
 
@@ -47,6 +49,9 @@ export class ReportsService {
 
     // Invalidate feed cache for this country
     await this.invalidateFeedCache(country);
+
+    // Notify followers
+    this.followsService.notifyFollowers(authorId, saved.title, saved.id).catch(() => {});
 
     return saved;
   }

@@ -29,6 +29,10 @@ import { ElectionModule } from './modules/election/election.module';
 import { SearchModule } from './modules/search/search.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { RekognitionModule } from './modules/rekognition/rekognition.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { TipsModule } from './modules/tips/tips.module';
+import { FollowsModule } from './modules/follows/follows.module';
+import { ReportUpdatesModule } from './modules/report-updates/report-updates.module';
 
 @Module({
   imports: [
@@ -96,6 +100,10 @@ import { RekognitionModule } from './modules/rekognition/rekognition.module';
     HealthModule,
     FaceBlurModule,
     FraudDetectionModule,
+    CommentsModule,
+    TipsModule,
+    FollowsModule,
+    ReportUpdatesModule,
   ],
 })
 export class AppModule {}

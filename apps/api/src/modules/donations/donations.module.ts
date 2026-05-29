@@ -13,6 +13,6 @@ import { FraudDetectionModule } from '../fraud-detection/fraud-detection.module'
   ],
   controllers: [DonationsController],
   providers: [DonationsService, PaystackService],
-  exports: [DonationsService],
+  exports: [DonationsService, PaystackService],
 })
 export class DonationsModule {}

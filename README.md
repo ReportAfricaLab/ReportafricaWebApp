@@ -104,6 +104,33 @@ npm run dev:mobile # Expo mobile
 - `GET /api/v1/donations/verify/:reference` — Verify payment
 - `POST /api/v1/donations/webhook/paystack` — Paystack webhook
 
+### Comments
+- `POST /api/v1/comments` — Create comment (auth required)
+- `GET /api/v1/comments/report/:reportId?page=1` — Get comments for report
+- `DELETE /api/v1/comments/:id` — Delete comment (auth required, owner only)
+- `PATCH /api/v1/comments/:id/like` — Like comment (auth required)
+
+### Tips (Reporter Earnings)
+- `POST /api/v1/tips` — Tip a reporter on a report
+- `GET /api/v1/tips/verify/:reference` — Verify tip payment
+- `GET /api/v1/tips/report/:reportId` — Get tips for a report
+- `GET /api/v1/tips/received` — Get my received tips (auth required)
+- `POST /api/v1/tips/webhook/paystack` — Paystack webhook
+
+### Follows
+- `POST /api/v1/follows/:userId` — Follow a reporter (auth required)
+- `DELETE /api/v1/follows/:userId` — Unfollow (auth required)
+- `GET /api/v1/follows/check/:userId` — Check if following (auth required)
+- `GET /api/v1/follows/feed` — Feed from followed reporters (auth required)
+- `GET /api/v1/follows/:userId/followers` — Get user's followers
+- `GET /api/v1/follows/:userId/following` — Get who user follows
+- `GET /api/v1/follows/:userId/counts` — Follower/following counts
+
+### Report Updates (Threads)
+- `POST /api/v1/report-updates` — Post update to own report (auth required)
+- `GET /api/v1/report-updates/report/:reportId` — Get updates for report
+- `DELETE /api/v1/report-updates/:id` — Delete update (auth required, owner only)
+
 ## Development Phases
 
 - [x] Phase 1 — Foundation (monorepo, auth, reporting, feed, maps)
@@ -111,3 +138,4 @@ npm run dev:mobile # Expo mobile
 - [x] Phase 3 — Community Helping Hands (donations, campaigns, Paystack)
 - [x] Phase 4 — Enterprise (media licensing, government dashboards)
 - [x] Phase 5 — Continental Expansion (multi-region, languages)
+- [x] Phase 6 — Engagement & Monetization (comments, tips, follows, report updates)

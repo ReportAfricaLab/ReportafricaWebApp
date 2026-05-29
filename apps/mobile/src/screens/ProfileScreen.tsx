@@ -78,6 +78,29 @@ export default function ProfileScreen() {
         )}
       </View>
 
+      {/* Info Pages */}
+      <View style={styles.menu}>
+        <Text style={styles.menuSectionLabel}>More</Text>
+        {[
+          { page: 'About', icon: 'ℹ️', label: 'About' },
+          { page: 'HowItWorks', icon: '📖', label: 'How It Works' },
+          { page: 'FAQ', icon: '❓', label: 'FAQ' },
+          { page: 'Guidelines', icon: '📋', label: 'Community Guidelines' },
+          { page: 'Careers', icon: '💼', label: 'Careers' },
+          { page: 'Press', icon: '📰', label: 'Press & Media' },
+          { page: 'Partners', icon: '🤝', label: 'Partners' },
+          { page: 'Contact', icon: '✉️', label: 'Contact Us' },
+          { page: 'Privacy', icon: '🔒', label: 'Privacy Policy' },
+          { page: 'Terms', icon: '📜', label: 'Terms of Service' },
+        ].map((item) => (
+          <TouchableOpacity key={item.page} style={styles.menuItem} onPress={() => navigation.navigate('Info', { page: item.page })}>
+            <Text style={styles.menuIcon}>{item.icon}</Text>
+            <Text style={styles.menuText}>{item.label}</Text>
+            <Text style={styles.menuArrow}>›</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={logout}>
         <Text style={styles.logoutText}>Sign Out</Text>
@@ -96,6 +119,7 @@ const styles = StyleSheet.create({
   username: { fontSize: 14, color: theme.colors.light.textSecondary, marginTop: 2 },
   countryBadge: { fontSize: 12, color: theme.colors.primary, fontWeight: '600', marginTop: 6, backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
   menu: { padding: 16, gap: 8 },
+  menuSectionLabel: { fontSize: 12, fontWeight: '600', color: theme.colors.light.textSecondary, textTransform: 'uppercase', marginBottom: 4, marginLeft: 4 },
   menuItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: theme.borderRadius.md, borderWidth: 1, borderColor: theme.colors.light.border },
   menuIcon: { fontSize: 20, marginRight: 12 },
   menuText: { flex: 1, fontSize: theme.fontSize.md, fontWeight: '500', color: theme.colors.light.text },
