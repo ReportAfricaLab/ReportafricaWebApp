@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+
+const getStorage = () => require('@react-native-async-storage/async-storage').default;
 
 const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
 
@@ -31,21 +32,23 @@ export const useI18n = create<I18nState>((set, get) => ({
   setLanguage: (lang: string) => {
     const isRTL = lang === 'ar';
     set({ language: lang, isRTL });
-    AsyncStorage.setItem('ra_language', lang).catch(() => {});
+    try { getStorage().setItem('ra_language', lang); } catch {}
     get().loadTranslations(lang);
   },
 
   initFromCountry: (country: string) => {
-    AsyncStorage.getItem('ra_language').then((saved) => {
-      if (saved) {
-        set({ language: saved, isRTL: saved === 'ar' });
-        get().loadTranslations(saved);
-      } else {
-        const defaultLang = COUNTRY_DEFAULT_LANGUAGE[country] || 'en';
-        set({ language: defaultLang, isRTL: defaultLang === 'ar' });
-        get().loadTranslations(defaultLang);
-      }
-    }).catch(() => {});
+    try {
+      getStorage().getItem('ra_language').then((saved: string | null) => {
+        if (saved) {
+          set({ language: saved, isRTL: saved === 'ar' });
+          get().loadTranslations(saved);
+        } else {
+          const defaultLang = COUNTRY_DEFAULT_LANGUAGE[country] || 'en';
+          set({ language: defaultLang, isRTL: defaultLang === 'ar' });
+          get().loadTranslations(defaultLang);
+        }
+      }).catch(() => {});
+    } catch {}
   },
 
   loadTranslations: async (lang: string) => {

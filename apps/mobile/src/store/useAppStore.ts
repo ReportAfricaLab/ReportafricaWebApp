@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { setAuthToken } from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface User {
   id: string;
@@ -17,18 +16,22 @@ interface User {
 interface AppState {
   user: User | null;
   token: string | null;
-  userCountry: string; // Registration country (never changes)
-  viewingCountry: string; // Country feed being browsed (can change)
-  country: string; // Alias for viewingCountry (backward compat)
+  userCountry: string;
+  viewingCountry: string;
+  country: string;
   isAuthenticated: boolean;
   isDarkMode: boolean;
 
   setAuth: (user: User, token: string) => void;
   logout: () => void;
   setViewingCountry: (country: string) => void;
-  setCountry: (country: string) => void; // backward compat
+  setCountry: (country: string) => void;
   toggleDarkMode: () => void;
+  initDarkMode: () => void;
 }
+
+// Lazy getter to avoid top-level import crash
+const getStorage = () => require('@react-native-async-storage/async-storage').default;
 
 export const useAppStore = create<AppState>((set) => ({
   user: null,
@@ -51,11 +54,20 @@ export const useAppStore = create<AppState>((set) => ({
 
   setViewingCountry: (country) => set({ viewingCountry: country, country }),
   setCountry: (country) => set({ viewingCountry: country, country }),
+
   toggleDarkMode: () => {
     set((state) => {
       const newMode = !state.isDarkMode;
-      AsyncStorage.setItem('ra_dark_mode', JSON.stringify(newMode)).catch(() => {});
+      try { getStorage().setItem('ra_dark_mode', JSON.stringify(newMode)); } catch {}
       return { isDarkMode: newMode };
     });
+  },
+
+  initDarkMode: () => {
+    try {
+      getStorage().getItem('ra_dark_mode').then((val: string | null) => {
+        if (val === 'true') set({ isDarkMode: true });
+      }).catch(() => {});
+    } catch {}
   },
 }));

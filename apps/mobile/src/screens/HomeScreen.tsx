@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl, Ima
 import { useNavigation } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
 import { useI18n } from '../store/useI18n';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { reportsAPI } from '../services/api';
 import { getCurrentLocation } from '../services/location';
 import { theme } from '../theme';
@@ -25,6 +26,7 @@ interface Report {
 export default function HomeScreen() {
   const { viewingCountry, setViewingCountry } = useAppStore();
   const { t } = useI18n();
+  const colors = useThemeColors();
   const navigation = useNavigation<any>();
   const [reports, setReports] = useState<Report[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,31 +67,31 @@ export default function HomeScreen() {
   };
 
   const renderReport = ({ item }: { item: Report }) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ReportDetail', { id: item.id })}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => navigation.navigate('ReportDetail', { id: item.id })}>
       <View style={styles.cardHeader}>
         <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(item.severity) }]}>
           <Text style={styles.severityText}>{item.severity.toUpperCase()}</Text>
         </View>
-        <Text style={styles.category}>{item.category.replace('_', ' ')}</Text>
+        <Text style={[styles.category, { color: colors.textSecondary }]}>{item.category.replace('_', ' ')}</Text>
       </View>
-      <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-      <Text style={styles.description} numberOfLines={3}>{item.description}</Text>
-      <View style={styles.cardFooter}>
-        <Text style={styles.meta}>{item.author?.displayName || 'Anonymous'}</Text>
-        <Text style={styles.meta}>↑ {item.upvotes} · 💬 {item.commentCount}</Text>
+      <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{item.title}</Text>
+      <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>{item.description}</Text>
+      <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
+        <Text style={[styles.meta, { color: colors.textSecondary }]}>{item.author?.displayName || 'Anonymous'}</Text>
+        <Text style={[styles.meta, { color: colors.textSecondary }]}>↑ {item.upvotes} · 💬 {item.commentCount}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View style={styles.headerRow}>
           <View style={styles.brandRow}>
             <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
             <View>
               <Text style={styles.brandName}>{brandName}</Text>
-              <Text style={styles.subtitle}>Live Reports</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Live Reports</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.searchBtn} onPress={() => navigation.navigate('Search')}>
@@ -107,7 +109,7 @@ export default function HomeScreen() {
         </View>
       </View>
       {/* Country Selector + Sort Toggle */}
-      <View style={styles.filterRow}>
+      <View style={[styles.filterRow, { backgroundColor: colors.card }]}>
         <TouchableOpacity style={styles.countrySelector} onPress={() => setShowCountryPicker(!showCountryPicker)}>
           <Text style={styles.countrySelectorText}>📍 {COUNTRY_CONFIG[viewingCountry]?.name || viewingCountry} ▼</Text>
         </TouchableOpacity>
@@ -121,7 +123,7 @@ export default function HomeScreen() {
         </View>
       </View>
       {showCountryPicker && (
-        <View style={styles.countryGrid}>
+        <View style={[styles.countryGrid, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
           {Object.entries(COUNTRY_CONFIG).map(([code, config]) => (
             <TouchableOpacity key={code} style={[styles.countryChip, viewingCountry === code && styles.countryChipActive]}
               onPress={() => { setViewingCountry(code); setShowCountryPicker(false); }}>

@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
 import { useI18n } from '../store/useI18n';
+import { useThemeColors } from '../hooks/useThemeColors';
 import { followsAPI, usersAPI, tipsAPI } from '../services/api';
 import { theme } from '../theme';
 import { COUNTRY_CONFIG } from '../constants';
@@ -30,6 +31,7 @@ const TRUST_LABELS: Record<string, { label: string; color: string }> = {
 export default function ProfileScreen() {
   const { user, logout, userCountry, token, setAuth, isDarkMode, toggleDarkMode } = useAppStore();
   const { language, setLanguage, t } = useI18n();
+  const colors = useThemeColors();
   const navigation = useNavigation<any>();
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [followers, setFollowers] = useState(0);
@@ -103,9 +105,9 @@ export default function ProfileScreen() {
   const trustInfo = TRUST_LABELS[user?.trustLevel || 'new_reporter'] || TRUST_LABELS.new_reporter;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       {/* Professional Profile Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
         <View style={styles.coverBar} />
         <View style={styles.profileSection}>
           <TouchableOpacity onPress={handleChangePhoto} style={styles.avatarContainer}>
@@ -123,8 +125,8 @@ export default function ProfileScreen() {
 
           {editing ? (
             <View style={styles.editNameRow}>
-              <TextInput style={styles.editNameInput} value={displayName} onChangeText={setDisplayName}
-                placeholder="Your full name" maxLength={50} />
+              <TextInput style={[styles.editNameInput, { color: colors.text }]} value={displayName} onChangeText={setDisplayName}
+                placeholder="Your full name" placeholderTextColor={colors.textSecondary} maxLength={50} />
               <TouchableOpacity style={styles.saveBtn} onPress={handleSaveProfile} disabled={saving}>
                 <Text style={styles.saveBtnText}>{saving ? '...' : '✓'}</Text>
               </TouchableOpacity>
@@ -134,48 +136,48 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <TouchableOpacity onPress={() => setEditing(true)}>
-              <Text style={styles.fullName}>{user?.displayName || 'Reporter'}</Text>
+              <Text style={[styles.fullName, { color: colors.text }]}>{user?.displayName || 'Reporter'}</Text>
               <Text style={styles.editHint}>Tap to edit name</Text>
             </TouchableOpacity>
           )}
 
-          <Text style={styles.username}>@{user?.username}</Text>
+          <Text style={[styles.username, { color: colors.textSecondary }]}>@{user?.username}</Text>
 
           <View style={styles.trustBadge}>
             <View style={[styles.trustDot, { backgroundColor: trustInfo.color }]} />
             <Text style={[styles.trustText, { color: trustInfo.color }]}>{trustInfo.label}</Text>
           </View>
 
-          <Text style={styles.locationText}>📍 {COUNTRY_CONFIG[userCountry]?.name || userCountry}</Text>
+          <Text style={[styles.locationText, { color: colors.textSecondary }]}>📍 {COUNTRY_CONFIG[userCountry]?.name || userCountry}</Text>
         </View>
 
         {/* Stats Row */}
-        <View style={styles.statsRow}>
+        <View style={[styles.statsRow, { borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Followers', { userId: user?.id, tab: 'followers' })}>
-            <Text style={styles.statValue}>{followers}</Text>
-            <Text style={styles.statLabel}>Followers</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{followers}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Followers</Text>
           </TouchableOpacity>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('Followers', { userId: user?.id, tab: 'following' })}>
-            <Text style={styles.statValue}>{following}</Text>
-            <Text style={styles.statLabel}>Following</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{following}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Following</Text>
           </TouchableOpacity>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{user?.trustScore || 0}</Text>
-            <Text style={styles.statLabel}>Trust Score</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{user?.trustScore || 0}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Trust Score</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('BuyTipPack')}>
-            <Text style={styles.statValue}>{tipBalance}</Text>
-            <Text style={styles.statLabel}>Tip Balance</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{tipBalance}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Tip Balance</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Activity Menu */}
       <View style={styles.menu}>
-        <Text style={styles.menuSectionLabel}>Activity</Text>
+        <Text style={[styles.menuSectionLabel, { color: colors.textSecondary }]}>Activity</Text>
         {[
           { screen: 'Followers', icon: '👥', label: 'Followers & Following', params: { userId: user?.id } },
           { screen: 'Leaderboard', icon: '🏆', label: 'Leaderboard' },
@@ -184,21 +186,21 @@ export default function ProfileScreen() {
           { screen: 'Referral', icon: '🎁', label: 'Referral Program' },
           { screen: 'LicenseRequests', icon: '📄', label: 'License Requests' },
         ].map((item) => (
-          <TouchableOpacity key={item.screen} style={styles.menuItem} onPress={() => navigation.navigate(item.screen, item.params)}>
+          <TouchableOpacity key={item.screen} style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => navigation.navigate(item.screen, item.params)}>
             <Text style={styles.menuIcon}>{item.icon}</Text>
-            <Text style={styles.menuText}>{item.label}</Text>
-            <Text style={styles.menuArrow}>›</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{item.label}</Text>
+            <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
         ))}
       </View>
 
       {/* Settings */}
       <View style={styles.menu}>
-        <Text style={styles.menuSectionLabel}>Settings</Text>
+        <Text style={[styles.menuSectionLabel, { color: colors.textSecondary }]}>Settings</Text>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => setShowLangPicker(!showLangPicker)}>
+        <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => setShowLangPicker(!showLangPicker)}>
           <Text style={styles.menuIcon}>🌍</Text>
-          <Text style={styles.menuText}>{t('settings.language', 'Language')}</Text>
+          <Text style={[styles.menuText, { color: colors.text }]}>{t('settings.language', 'Language')}</Text>
           <Text style={styles.menuValue}>{LANGUAGES.find((l) => l.code === language)?.name || 'English'}</Text>
         </TouchableOpacity>
 
@@ -213,15 +215,15 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <View style={styles.menuItem}>
+        <View style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={styles.menuIcon}>🏠</Text>
-          <Text style={styles.menuText}>{t('profile.yourCountry', 'Your Country')}</Text>
+          <Text style={[styles.menuText, { color: colors.text }]}>{t('profile.yourCountry', 'Your Country')}</Text>
           <Text style={styles.menuValue}>{COUNTRY_CONFIG[userCountry]?.name || userCountry}</Text>
         </View>
 
-        <View style={styles.menuItem}>
+        <View style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={styles.menuIcon}>🌙</Text>
-          <Text style={styles.menuText}>Dark Mode</Text>
+          <Text style={[styles.menuText, { color: colors.text }]}>Dark Mode</Text>
           <Switch value={isDarkMode} onValueChange={toggleDarkMode} trackColor={{ true: theme.colors.primary }} />
         </View>
       </View>

@@ -15,12 +15,13 @@ Sentry.init({
 
 function App() {
   const { isRTL } = useI18n();
-  const { userCountry } = useAppStore();
+  const { userCountry, initDarkMode } = useAppStore();
   const { initFromCountry } = useI18n();
 
   useEffect(() => {
     initFromCountry(userCountry);
-  }, [userCountry]);
+    initDarkMode();
+  }, []);
 
   useEffect(() => {
     if (I18nManager.isRTL !== isRTL) {
