@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const [reports, setReports] = useState<Report[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [sort, setSort] = useState<'smart' | 'latest'>('smart');
 
   const brandName = COUNTRY_CONFIG[country]?.brandName || 'ReportAfrica';
 
@@ -36,7 +37,7 @@ export default function HomeScreen() {
 
   const loadFeed = async () => {
     try {
-      const res = await reportsAPI.getFeed(country, 1, location?.latitude, location?.longitude);
+      const res = await reportsAPI.getFeed(country, 1, location?.latitude, location?.longitude, sort);
       setReports(res.data?.data || []);
     } catch (err) {
       console.error('Failed to load feed:', err);
@@ -49,7 +50,7 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  useEffect(() => { loadFeed(); }, [country, location]);
+  useEffect(() => { loadFeed(); }, [country, location, sort]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -102,6 +103,15 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      {/* Sort Toggle */}
+      <View style={styles.sortRow}>
+        <TouchableOpacity style={[styles.sortBtn, sort === 'smart' && styles.sortBtnActive]} onPress={() => setSort('smart')}>
+          <Text style={[styles.sortBtnText, sort === 'smart' && styles.sortBtnTextActive]}>🔥 Smart</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.sortBtn, sort === 'latest' && styles.sortBtnActive]} onPress={() => setSort('latest')}>
+          <Text style={[styles.sortBtnText, sort === 'latest' && styles.sortBtnTextActive]}>🕐 Latest</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={reports}
         keyExtractor={(item) => item.id}
@@ -120,8 +130,13 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background },
-  header: { paddingHorizontal: 16, paddingTop: 60, paddingBottom: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
+  header: { paddingHorizontal: 16, paddingTop: 60, paddingBottom: 12, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sortRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#fff' },
+  sortBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f3f4f6' },
+  sortBtnActive: { backgroundColor: theme.colors.primary },
+  sortBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.light.textSecondary },
+  sortBtnTextActive: { color: '#fff' },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { width: 40, height: 40 },
   brandName: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.primary },

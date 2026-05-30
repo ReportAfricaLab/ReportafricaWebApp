@@ -42,9 +42,10 @@ export const usersAPI = {
 
 export const reportsAPI = {
   create: (data: any) => api.post('/reports', data),
-  getFeed: (country: string, page = 1, lat?: number, lng?: number) => {
+  getFeed: (country: string, page = 1, lat?: number, lng?: number, sort?: string) => {
     let url = `/reports/feed?country=${country}&page=${page}`;
     if (lat && lng) url += `&lat=${lat}&lng=${lng}`;
+    if (sort) url += `&sort=${sort}`;
     return api.get(url);
   },
   getNearby: (lat: number, lng: number, radius = 10, page = 1) =>

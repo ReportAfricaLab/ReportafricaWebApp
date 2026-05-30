@@ -77,77 +77,90 @@ export class ReportsService {
     return this.reportRepo.findOne({ where: { id }, relations: ['author'] });
   }
 
-  async getFeed(country: string, page = 1, limit = 20, lat?: number, lng?: number) {
-    const cacheKey = `feed:${country}:${page}:${limit}`;
+  async getFeed(country: string, page = 1, limit = 20, lat?: number, lng?: number, sort?: string) {
+    const cacheKey = `feed:${country}:${page}:${limit}:${sort || 'smart'}`;
     if (this.cache && !lat) {
       const cached = await this.cache.get<{ data: ReportEntity[]; meta: any }>(cacheKey);
       if (cached) return cached;
     }
 
-    // Advanced feed algorithm with scoring
-    const qb = this.reportRepo
-      .createQueryBuilder('report')
-      .leftJoinAndSelect('report.author', 'author')
-      .where('report.country = :country', { country })
-      .addSelect(`(
-        (report.upvotes * 3) +
-        (report."comment_count" * 2) +
-        (report."view_count" * 0.1) -
-        (report.downvotes * 2) +
-        (COALESCE(author."trust_score", 0) * 0.5) +
-        (CASE report."verification_level"
-          WHEN 'officially_verified' THEN 50
-          WHEN 'ai_verified' THEN 30
-          WHEN 'community_verified' THEN 20
-          WHEN 'trusted_reporter_verified' THEN 25
-          ELSE 0
-        END) +
-        (CASE report.severity
-          WHEN 'critical' THEN 40
-          WHEN 'high' THEN 20
-          WHEN 'medium' THEN 5
-          ELSE 0
-        END) -
-        (EXTRACT(EPOCH FROM (NOW() - report."created_at")) / 3600 * 2)
-      )`, 'feed_score')
-      .orderBy('feed_score', 'DESC');
+    if (sort === 'latest') {
+      // Simple chronological query — no scoring
+      const [data, total] = await this.reportRepo.findAndCount({
+        where: { country },
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['author'],
+      });
 
-    // Geographic boost — merge into feed_score to avoid DISTINCT/ORDER BY conflict
-    if (lat && lng) {
-      const radiusDegrees = 10 / 111;
-      qb.addSelect(`(
-        (report.upvotes * 3) +
-        (report."comment_count" * 2) +
-        (report."view_count" * 0.1) -
-        (report.downvotes * 2) +
-        (COALESCE(author."trust_score", 0) * 0.5) +
-        (CASE report."verification_level"
-          WHEN 'officially_verified' THEN 50
-          WHEN 'ai_verified' THEN 30
-          WHEN 'community_verified' THEN 20
-          WHEN 'trusted_reporter_verified' THEN 25
-          ELSE 0
-        END) +
-        (CASE report.severity
-          WHEN 'critical' THEN 40
-          WHEN 'high' THEN 20
-          WHEN 'medium' THEN 5
-          ELSE 0
-        END) -
-        (EXTRACT(EPOCH FROM (NOW() - report."created_at")) / 3600 * 2) +
-        (CASE WHEN report.latitude BETWEEN ${lat - radiusDegrees} AND ${lat + radiusDegrees}
-          AND report.longitude BETWEEN ${lng - radiusDegrees} AND ${lng + radiusDegrees}
-        THEN 30 ELSE 0 END)
-      )`, 'feed_score_geo');
-      qb.orderBy('feed_score_geo', 'DESC');
+      const result = { data, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+      if (this.cache) await this.cache.set(cacheKey, result, 60000);
+      return result;
     }
 
-    const total = await qb.getCount();
-    const data = await qb.skip((page - 1) * limit).take(limit).getMany();
+    // Smart feed — use raw query to avoid DISTINCT/ORDER BY conflict
+    let scoreExpr = `
+      (r.upvotes * 3) +
+      (r.comment_count * 2) +
+      (r.view_count * 0.1) -
+      (r.downvotes * 2) +
+      (COALESCE(a.trust_score, 0) * 0.5) +
+      (CASE r.verification_level
+        WHEN 'officially_verified' THEN 50
+        WHEN 'ai_verified' THEN 30
+        WHEN 'community_verified' THEN 20
+        WHEN 'trusted_reporter_verified' THEN 25
+        ELSE 0
+      END) +
+      (CASE r.severity
+        WHEN 'critical' THEN 40
+        WHEN 'high' THEN 20
+        WHEN 'medium' THEN 5
+        ELSE 0
+      END) -
+      (EXTRACT(EPOCH FROM (NOW() - r.created_at)) / 3600 * 0.5)
+    `;
+
+    if (lat && lng) {
+      const radiusDegrees = 10 / 111;
+      scoreExpr += ` + (CASE WHEN r.latitude BETWEEN ${lat - radiusDegrees} AND ${lat + radiusDegrees}
+        AND r.longitude BETWEEN ${lng - radiusDegrees} AND ${lng + radiusDegrees}
+      THEN 30 ELSE 0 END)`;
+    }
+
+    // Get total count
+    const countResult = await this.reportRepo
+      .createQueryBuilder('r')
+      .where('r.country = :country', { country })
+      .getCount();
+
+    // Get scored IDs
+    const scoredIds = await this.reportRepo.query(`
+      SELECT r.id FROM reports r
+      LEFT JOIN users a ON a.id = r.author_id
+      WHERE r.country = $1
+      ORDER BY (${scoreExpr}) DESC
+      LIMIT $2 OFFSET $3
+    `, [country, limit, (page - 1) * limit]);
+
+    const ids = scoredIds.map((row: any) => row.id);
+
+    let data: ReportEntity[] = [];
+    if (ids.length > 0) {
+      data = await this.reportRepo
+        .createQueryBuilder('report')
+        .leftJoinAndSelect('report.author', 'author')
+        .whereInIds(ids)
+        .getMany();
+
+      // Preserve score order
+      data.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+    }
 
     const result = {
       data,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      meta: { page, limit, total: countResult, totalPages: Math.ceil(countResult / limit) },
     };
 
     if (this.cache && !lat) {

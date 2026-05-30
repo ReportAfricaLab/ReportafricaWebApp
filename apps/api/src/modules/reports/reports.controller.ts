@@ -20,6 +20,7 @@ export class ReportsController {
     @Query('limit') limit?: string,
     @Query('lat') lat?: string,
     @Query('lng') lng?: string,
+    @Query('sort') sort?: string,
   ) {
     return this.reportsService.getFeed(
       country,
@@ -27,6 +28,7 @@ export class ReportsController {
       Number(limit) || 20,
       lat ? Number(lat) : undefined,
       lng ? Number(lng) : undefined,
+      sort,
     );
   }
 
