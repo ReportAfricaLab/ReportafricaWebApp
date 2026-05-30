@@ -175,6 +175,9 @@ function ReportContent() {
         {showTip && (
           <div className="mt-4 p-4 bg-amber-50 rounded-lg">
             <p className="text-xs text-amber-800 mb-3">Balance: {tipCurrency} {tipBalance.toLocaleString()}</p>
+            {report.country !== JSON.parse(localStorage.getItem('ra_user') || '{}')?.country && (
+              <p className="text-xs text-blue-600 mb-3 italic">Reporter will receive equivalent in their local currency</p>
+            )}
             <div className="grid grid-cols-4 gap-2 mb-3">
               {({
                 NGN: [1500, 3000, 5000, 10000],
