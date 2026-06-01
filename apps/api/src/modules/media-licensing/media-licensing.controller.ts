@@ -58,6 +58,12 @@ export class MediaLicensingController {
 
   @Post('webhook/korapay')
   handleWebhook(@Body() body: any, @Headers('x-korapay-signature') signature: string) {
+    // Verify KoraPay webhook signature
+    const crypto = require('crypto');
+    const secret = process.env.KORAPAY_SECRET_KEY || '';
+    const hash = crypto.createHmac('sha256', secret).update(JSON.stringify(body)).digest('hex');
+    if (hash !== signature) return { status: 'invalid signature' };
+
     if (body.event === 'charge.success') {
       this.service.handlePaymentWebhook(body.data?.reference, body.event);
     }

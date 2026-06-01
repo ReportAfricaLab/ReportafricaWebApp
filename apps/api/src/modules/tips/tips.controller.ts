@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Query, UseGuards, Request, Headers } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsNumber, IsOptional, IsEmail, Min, IsInt } from 'class-validator';
 import { TipsService } from './tips.service';
@@ -54,7 +54,14 @@ export class TipsController {
   }
 
   @Post('webhook/paystack')
-  handleWebhook(@Body() body: any) {
+  handleWebhook(@Body() body: any, @Headers('x-paystack-signature') signature: string) {
+    // Verify webhook signature
+    const PaystackService = require('../donations/paystack.service').PaystackService;
+    const crypto = require('crypto');
+    const secret = process.env.PAYSTACK_SECRET_KEY || '';
+    const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(body)).digest('hex');
+    if (hash !== signature) return { status: 'invalid signature' };
+
     if (body.event === 'charge.success') {
       this.service.handleWebhook(body.event, body.data);
     }

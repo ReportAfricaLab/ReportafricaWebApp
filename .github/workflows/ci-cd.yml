@@ -131,10 +131,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Deploy web (update ECS or trigger Amplify)
+      - name: Deploy web to ECS
         run: |
-          echo "Web deployment triggered. Configure Amplify webhook or ECS update here."
-          # Option A: ECS
-          # aws ecs update-service --cluster $ECS_CLUSTER --service reportafrica-web-service --force-new-deployment
-          # Option B: Amplify
-          # aws amplify start-job --app-id ${{ secrets.AMPLIFY_APP_ID }} --branch-name main --job-type RELEASE
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service reportafrica-web-service \
+            --force-new-deployment
