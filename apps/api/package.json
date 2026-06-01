@@ -7,6 +7,8 @@
     "dev": "nest start --watch",
     "start": "node dist/main",
     "start:prod": "node dist/main",
+    "migration:generate": "npx typeorm migration:generate -d dist/data-source.js",
+"migration:run": "npx typeorm migration:run -d dist/data-source.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\""
   },
   "dependencies": {
