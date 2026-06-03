@@ -5,7 +5,7 @@ import { UploadService } from './upload.service';
 
 class GetUploadUrlDto {
   @IsString()
-  @IsIn(['image', 'video', 'voice_note', 'document'])
+  @IsIn(['image', 'video', 'audio', 'voice_note', 'document'])
   fileType: string;
 
   @IsString()

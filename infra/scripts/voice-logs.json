@@ -1,0 +1,5 @@
+{
+  "commands": [
+    "docker logs reportafrica-api --tail 50 2>&1 | grep -i 'transcri\\|voice\\|error\\|failed'"
+  ]
+}
