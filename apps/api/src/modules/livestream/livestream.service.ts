@@ -92,11 +92,12 @@ export class LivestreamService {
     });
   }
 
-  async getUserStreams(userId: string) {
+  async getUserStreams(userId: string, page = 1, limit = 20) {
     return this.streamRepo.find({
       where: { userId },
       order: { createdAt: 'DESC' },
-      take: 20,
+      skip: (page - 1) * limit,
+      take: limit,
     });
   }
 

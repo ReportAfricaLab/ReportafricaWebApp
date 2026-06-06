@@ -90,8 +90,9 @@ export class SearchService {
   }
 
   private toTsQuery(query: string): string {
-    // Convert user query to PostgreSQL tsquery format
-    const words = query.trim().split(/\s+/).filter((w) => w.length > 1);
+    // Sanitize and convert user query to PostgreSQL tsquery format
+    const sanitized = query.replace(/[^a-zA-Z0-9\s]/g, ''); // Remove special characters
+    const words = sanitized.trim().split(/\s+/).filter((w) => w.length > 1);
     if (words.length === 0) return '';
     return words.map((w) => `${w}:*`).join(' & ');
   }

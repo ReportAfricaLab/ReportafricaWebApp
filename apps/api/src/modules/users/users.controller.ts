@@ -19,7 +19,13 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @Patch('me')
   async updateProfile(@Request() req: any, @Body() body: any) {
-    const { password, email, role, trustLevel, trustScore, ...safeData } = body;
+    // Whitelist allowed fields — block sensitive fields
+    const allowedFields = ['displayName', 'avatar', 'city', 'state', 'latitude', 'longitude', 'phone', 'bankCode', 'bankName', 'bankAccountNumber', 'bankAccountName', 'fcmToken', 'isAnonymousDefault'];
+    const safeData: any = {};
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) safeData[field] = body[field];
+    }
+
     const updated = await this.usersService.updateProfile(req.user.id, safeData);
 
     // If bank details were just added, auto-pay pending tips
