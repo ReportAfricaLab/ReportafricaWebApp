@@ -16,13 +16,14 @@ interface User {
 interface AppState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null;
   userCountry: string;
   viewingCountry: string;
   country: string;
   isAuthenticated: boolean;
   isDarkMode: boolean;
 
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, token: string, refreshToken?: string) => void;
   logout: () => void;
   setViewingCountry: (country: string) => void;
   setCountry: (country: string) => void;
@@ -36,20 +37,31 @@ const getStorage = () => require('@react-native-async-storage/async-storage').de
 export const useAppStore = create<AppState>((set) => ({
   user: null,
   token: null,
+  refreshToken: null,
   userCountry: 'NG',
   viewingCountry: 'NG',
   country: 'NG',
   isAuthenticated: false,
   isDarkMode: false,
 
-  setAuth: (user, token) => {
+  setAuth: (user, token, refreshToken) => {
     setAuthToken(token);
-    set({ user, token, isAuthenticated: true, userCountry: user.country, viewingCountry: user.country, country: user.country });
+    set({ user, token, refreshToken: refreshToken || null, isAuthenticated: true, userCountry: user.country, viewingCountry: user.country, country: user.country });
+    try {
+      getStorage().setItem('ra_token', token);
+      getStorage().setItem('ra_user', JSON.stringify(user));
+      if (refreshToken) getStorage().setItem('ra_refresh', refreshToken);
+    } catch {}
   },
 
   logout: () => {
     setAuthToken(null);
-    set({ user: null, token: null, isAuthenticated: false });
+    set({ user: null, token: null, refreshToken: null, isAuthenticated: false });
+    try {
+      getStorage().removeItem('ra_token');
+      getStorage().removeItem('ra_user');
+      getStorage().removeItem('ra_refresh');
+    } catch {}
   },
 
   setViewingCountry: (country) => set({ viewingCountry: country, country }),

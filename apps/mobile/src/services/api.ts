@@ -5,6 +5,12 @@ const LOCAL_IP = '10.162.41.17';
 const API_BASE_URL = __DEV__ ? `http://${LOCAL_IP}:3001/api/v1` : 'https://34-242-14-140.nip.io/api/v1';
 export const WS_URL = __DEV__ ? `http://${LOCAL_IP}:3001` : 'https://34-242-14-140.nip.io';
 
+// WebSocket connection helper with JWT auth
+export const getSocketConfig = () => ({
+  url: WS_URL + '/realtime',
+  options: { auth: { token: authToken }, transports: ['websocket'] },
+});
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -12,6 +18,7 @@ const api = axios.create({
 });
 
 let authToken: string | null = null;
+let refreshToken: string | null = null;
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;
@@ -22,7 +29,31 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
+export const setRefreshToken = (token: string | null) => { refreshToken = token; };
 export const getAuthToken = () => authToken;
+
+// Auto-refresh interceptor — if 401, try refresh token
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry && refreshToken) {
+      originalRequest._retry = true;
+      try {
+        const res = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+        const newToken = res.data.token;
+        setAuthToken(newToken);
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch {
+        // Refresh failed — logout
+        setAuthToken(null);
+        refreshToken = null;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authAPI = {
   register: (data: { email: string; username: string; displayName: string; password: string; country: string; phone?: string; latitude?: number; longitude?: number }) =>

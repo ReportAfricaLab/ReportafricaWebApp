@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       const res = await authAPI.googleLogin({ idToken });
-      setAuth(res.data.user, res.data.token);
+      setAuth(res.data.user, res.data.token, res.data.refreshToken);
     } catch (err: any) {
       Alert.alert('Google Sign-In Failed', err.response?.data?.message || 'Something went wrong.');
     } finally {
@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       const res = await authAPI.login({ email, password });
-      setAuth(res.data.user, res.data.token);
+      setAuth(res.data.user, res.data.token, res.data.refreshToken);
     } catch (err: any) {
       Alert.alert('Login Failed', err.response?.data?.message || 'Invalid credentials.');
     } finally {

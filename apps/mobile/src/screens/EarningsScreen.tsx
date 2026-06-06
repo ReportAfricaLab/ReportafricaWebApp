@@ -33,6 +33,14 @@ export default function EarningsScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>💰 My Earnings</Text>
+      <Text style={styles.subheading}>All earnings are paid directly to your bank account. No funds are held.</Text>
+
+      {earnings.some((e: any) => e.status === 'pending_bank') && (
+        <View style={styles.pendingBox}>
+          <Text style={styles.pendingTitle}>⚠️ You have pending tips!</Text>
+          <Text style={styles.pendingText}>Add your bank details in Profile to receive your earnings.</Text>
+        </View>
+      )}
 
       {stats?.earnings?.length > 0 && (
         <View style={styles.statsRow}>
@@ -46,7 +54,7 @@ export default function EarningsScreen() {
       )}
 
       {earnings.length === 0 ? (
-        <Text style={styles.emptyText}>No earnings yet. Tip income and media license fees will appear here.</Text>
+        <Text style={styles.emptyText}>No earnings yet. Tips and media license payments are sent directly to your bank account.</Text>
       ) : (
         <FlatList data={earnings} keyExtractor={(item) => item.id} renderItem={renderItem} contentContainerStyle={styles.list} />
       )}
@@ -58,7 +66,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.light.background, paddingTop: 60 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: theme.colors.light.textSecondary },
-  heading: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.light.text, paddingHorizontal: 16, marginBottom: 16 },
+  heading: { fontSize: theme.fontSize.xl, fontWeight: '700', color: theme.colors.light.text, paddingHorizontal: 16, marginBottom: 4 },
+  subheading: { fontSize: 12, color: theme.colors.light.textSecondary, paddingHorizontal: 16, marginBottom: 16 },
+  pendingBox: { marginHorizontal: 16, marginBottom: 16, padding: 14, backgroundColor: '#fef3c7', borderRadius: 12, borderWidth: 1, borderColor: '#fde68a' },
+  pendingTitle: { fontSize: 13, fontWeight: '600', color: '#92400e' },
+  pendingText: { fontSize: 11, color: '#a16207', marginTop: 4 },
   statsRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, marginBottom: 20 },
   statBox: { flex: 1, backgroundColor: '#ecfdf5', padding: 16, borderRadius: 12, alignItems: 'center' },
   statValue: { fontSize: 18, fontWeight: '700', color: '#059669' },

@@ -49,7 +49,7 @@ export default function RegisterScreen({ navigation }: any) {
     setLoading(true);
     try {
       const res = await authAPI.googleLogin({ idToken });
-      setAuth(res.data.user, res.data.token);
+      setAuth(res.data.user, res.data.token, res.data.refreshToken);
     } catch (err: any) {
       Alert.alert('Google Sign-In Failed', err.response?.data?.message || 'Something went wrong.');
     } finally {
@@ -86,7 +86,7 @@ export default function RegisterScreen({ navigation }: any) {
       const dialCode = COUNTRY_DIAL[selectedCountry] || '';
       const fullPhone = phone ? `${dialCode}${phone}` : undefined;
       const res = await authAPI.register({ email, username, displayName, password, country: selectedCountry, phone: fullPhone, latitude, longitude });
-      setAuth(res.data.user, res.data.token);
+      setAuth(res.data.user, res.data.token, res.data.refreshToken);
     } catch (err: any) {
       Alert.alert('Registration Failed', err.response?.data?.message || 'Something went wrong.');
     } finally {
