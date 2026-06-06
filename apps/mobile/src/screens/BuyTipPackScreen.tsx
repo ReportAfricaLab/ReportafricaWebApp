@@ -13,15 +13,16 @@ const CURRENCY_RATES: Record<string, number> = {
   SOS: 570, MGA: 4500,
 };
 
-const PACK_MARKUPS = [0.25, 0.20, 0.15, 0.12, 0.10, 0.08];
-const PACK_USD_COSTS = [1.5, 3.5, 7, 16, 33, 65];
+const PLATFORM_FEE = 0.05; // 5%
+const PACK_USD_VALUES = [3.3, 6.7, 16.7, 33.3, 50, 66.7];
 
-function getPacksForCurrency(currency: string): { cost: number; value: number }[] {
+function getPacksForCurrency(currency: string): { value: number; fee: number; cost: number }[] {
   const rate = CURRENCY_RATES[currency] || 1;
-  return PACK_USD_COSTS.map((usdCost, i) => {
-    const cost = Math.round(usdCost * rate / 100) * 100 || Math.round(usdCost * rate);
-    const value = Math.round(cost * (1 - PACK_MARKUPS[i]));
-    return { cost, value };
+  return PACK_USD_VALUES.map((usdValue) => {
+    const value = Math.round(usdValue * rate / 1000) * 1000 || Math.round(usdValue * rate);
+    const fee = Math.round(value * PLATFORM_FEE);
+    const cost = value + fee;
+    return { value, fee, cost };
   });
 }
 
@@ -100,7 +101,7 @@ export default function BuyTipPackScreen({ navigation }: any) {
             <Text style={styles.packValueLabel}>tip credits</Text>
             <View style={styles.packDivider} />
             <Text style={styles.packCost}>Pay {symbol}{pack.cost.toLocaleString()}</Text>
-            <Text style={styles.packSavings}>Save {Math.round(((pack.cost - pack.value) / pack.cost) * 100)}% vs direct</Text>
+            <Text style={styles.packSavings}>incl. {symbol}{pack.fee.toLocaleString()} fee (5%)</Text>
           </TouchableOpacity>
         ))}
       </View>

@@ -25,15 +25,19 @@ const CURRENCY_RATES: Record<string, number> = {
   SOS: 570, MGA: 4500,
 };
 
-const PACK_MARKUPS = [0.25, 0.20, 0.15, 0.12, 0.10, 0.08];
-const PACK_USD_COSTS = [1.5, 3.5, 7, 16, 33, 65];
+const PLATFORM_FEE = 0.05; // 5% platform fee on all packs
 
-function getPacksForCurrency(currency: string): { cost: number; value: number }[] {
+// Pack values in USD equivalent (used to calculate local currency amounts)
+const PACK_USD_VALUES = [3.3, 6.7, 16.7, 33.3, 50, 66.7];
+const PACK_LABELS_INTERNAL = ['Starter', 'Basic', 'Popular', 'Supporter', 'Champion', 'Legend'];
+
+function getPacksForCurrency(currency: string): { value: number; fee: number; cost: number }[] {
   const rate = CURRENCY_RATES[currency] || 1;
-  return PACK_USD_COSTS.map((usdCost, i) => {
-    const cost = Math.round(usdCost * rate / 100) * 100 || Math.round(usdCost * rate);
-    const value = Math.round(cost * (1 - PACK_MARKUPS[i]));
-    return { cost, value };
+  return PACK_USD_VALUES.map((usdValue) => {
+    const value = Math.round(usdValue * rate / 1000) * 1000 || Math.round(usdValue * rate);
+    const fee = Math.round(value * PLATFORM_FEE);
+    const cost = value + fee;
+    return { value, fee, cost };
   });
 }
 
@@ -72,7 +76,7 @@ export class TipsService {
       amount: pack.cost * 100, // kobo/pesewas
       currency,
       reference,
-      metadata: { type: 'tip_pack', userId, packIndex: dto.packIndex, packValue: pack.value, currency },
+      metadata: { type: 'tip_pack', userId, packIndex: dto.packIndex, packValue: pack.value, packFee: pack.fee, currency },
     });
 
     return { paymentUrl: payment.data?.authorization_url, reference, pack };
