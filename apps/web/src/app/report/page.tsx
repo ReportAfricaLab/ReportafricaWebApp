@@ -124,6 +124,62 @@ function ReportContent() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex gap-6">
 
+      {/* Left Sidebar (desktop only) */}
+      <aside className="hidden xl:block w-56 flex-shrink-0">
+        <div className="sticky top-24 space-y-4">
+
+          {/* Author Card */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-[#0F7B6C] flex items-center justify-center text-white text-xl font-bold mx-auto mb-2">
+              {report.author?.displayName?.[0]?.toUpperCase() || '?'}
+            </div>
+            <p className="text-sm font-semibold text-gray-900">{report.author?.displayName || 'Anonymous'}</p>
+            <p className="text-xs text-gray-400">@{report.author?.username || 'anonymous'}</p>
+            <p className="text-[10px] text-[#0F7B6C] font-medium mt-1 capitalize">{(report.author?.trustLevel || 'new_reporter').replace('_', ' ')}</p>
+            {report.author?.id && token && report.author.id !== JSON.parse(localStorage.getItem('ra_user') || '{}')?.id && (
+              <button onClick={handleFollow}
+                className={`mt-3 w-full py-2 rounded-lg text-xs font-medium transition ${isFollowing ? 'bg-gray-100 text-gray-600' : 'bg-[#0F7B6C] text-white hover:bg-[#0B6E4F]'}`}>
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
+            )}
+          </div>
+
+          {/* Report Stats */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">📊 Stats</h3>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between"><span className="text-gray-500">Views</span><span className="font-medium text-gray-900">{report.viewCount || 0}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Confirms</span><span className="font-medium text-green-600">↑ {report.upvotes || 0}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Disputes</span><span className="font-medium text-red-600">↓ {report.downvotes || 0}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Comments</span><span className="font-medium text-gray-900">{report.commentCount || 0}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Credibility</span><span className="font-medium text-blue-600">{verifyStats?.credibilityScore || 0}%</span></div>
+            </div>
+          </div>
+
+          {/* Ad Slot */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <p className="text-[10px] font-medium text-gray-400 mb-2">Sponsored</p>
+            <div className="w-full h-28 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
+              <p className="text-xs text-gray-400">Ad Space</p>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-2"><a href="/contact" className="text-[#0F7B6C]">Advertise →</a></p>
+          </div>
+
+          {/* Share */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">🔗 Share Report</h3>
+            <div className="flex gap-2">
+              <button onClick={() => navigator.clipboard.writeText(window.location.href)} className="flex-1 py-2 bg-gray-100 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-200 transition">📋 Copy Link</button>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}&text=${encodeURIComponent(report.title)}`} target="_blank" className="flex-1 py-2 bg-black text-white rounded-lg text-xs font-medium text-center">𝕏</a>
+              <a href={`https://wa.me/?text=${encodeURIComponent(report.title + ' ' + (typeof window !== 'undefined' ? window.location.href : ''))}`} target="_blank" className="flex-1 py-2 bg-green-500 text-white rounded-lg text-xs font-medium text-center">WhatsApp</a>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
       {/* Main Content */}
       <main className="flex-1 min-w-0 max-w-2xl space-y-6">
       {/* Report Card */}
