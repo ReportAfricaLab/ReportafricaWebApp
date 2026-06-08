@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // For Android emulator use 10.0.2.2, for physical device use your computer's IP (run: ipconfig | findstr IPv4)
 const LOCAL_IP = '10.162.41.17';
-const API_BASE_URL = __DEV__ ? `http://${LOCAL_IP}:3001/api/v1` : 'https://34-242-14-140.nip.io/api/v1';
-export const WS_URL = __DEV__ ? `http://${LOCAL_IP}:3001` : 'https://34-242-14-140.nip.io';
+const API_BASE_URL = 'https://34-242-14-140.nip.io/api/v1';
+export const WS_URL = 'https://34-242-14-140.nip.io';
 
 // WebSocket connection helper with JWT auth
 export const getSocketConfig = () => ({
@@ -61,9 +61,9 @@ export const authAPI = {
   login: (data: { email: string; password: string }) =>
     api.post('/auth/login', data),
   googleLogin: (data: { idToken: string }) =>
-    api.post('/auth/google', data),
+    api.post('/auth/oauth', { provider: 'google', token: data.idToken }),
   appleLogin: (data: { identityToken: string; fullName?: string }) =>
-    api.post('/auth/apple', data),
+    api.post('/auth/oauth', { provider: 'apple', token: data.identityToken }),
   forgotPassword: (email: string) =>
     api.post('/auth/forgot-password', { email }),
   resetPassword: (token: string, newPassword: string) =>
