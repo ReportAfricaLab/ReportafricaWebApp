@@ -433,7 +433,8 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
       setBroadcastConfig({
         ingestEndpoint: stream.ingestEndpoint,
         streamKey: stream.streamKeyValue || stream.streamKey || '',
-      });
+        streamId: stream.id,
+      } as any);
       setShowBroadcast(true);
     } catch (err: any) {
       alert(err.message || 'Failed to create livestream');
@@ -552,7 +553,13 @@ function ElectionReportForm({ election, onClose, onSubmitted }: { election: stri
           <div className="mt-4 border-t border-gray-200 pt-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-gray-900">📡 Broadcasting</h3>
-              <button onClick={() => { setShowBroadcast(false); onSubmitted(); }}
+              <button onClick={async () => {
+                const authToken = localStorage.getItem('ra_token');
+                if (authToken && (broadcastConfig as any)?.streamId) {
+                  try { await api.livestream.end(authToken, (broadcastConfig as any).streamId); } catch {}
+                }
+                setShowBroadcast(false); onSubmitted();
+              }}
                 className="text-xs text-red-600 font-semibold">End & Close</button>
             </div>
             <StreamBroadcaster config={broadcastConfig} autoPreview={true} />
