@@ -8,6 +8,7 @@ import { RealtimeGateway } from './realtime.gateway';
 @Global()
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([ChatMessageEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
