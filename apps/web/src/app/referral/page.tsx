@@ -56,14 +56,26 @@ export default function ReferralPage() {
       <div className="bg-white border border-gray-200 rounded-xl p-6 text-center mb-6">
         <p className="text-xs text-gray-500 mb-2">Your Referral Code</p>
         <p className="text-2xl font-bold text-[#0F7B6C] tracking-wider mb-4">{code || '—'}</p>
-        <div className="flex gap-2 justify-center">
+        <div className="flex flex-col gap-2">
           {!code && <button onClick={handleGenerate} className="px-4 py-2 bg-[#0F7B6C] text-white rounded-lg text-sm font-medium">Generate Code</button>}
-          {code && <button onClick={handleCopy} className="px-4 py-2 bg-[#0F7B6C] text-white rounded-lg text-sm font-medium">📋 Copy</button>}
-          {code && <button onClick={() => {
-            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
-            if (navigator.share) { navigator.share({ text: msg }).catch(() => {}); }
-            else { navigator.clipboard.writeText(msg); setMessage('Invite message copied!'); setTimeout(() => setMessage(''), 2000); }
-          }} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium">📤 Share Invite</button>}
+          {code && (
+            <>
+              <div className="flex gap-2 justify-center">
+                <button onClick={handleCopy} className="px-4 py-2 bg-[#0F7B6C] text-white rounded-lg text-sm font-medium">📋 Copy Code</button>
+                <button onClick={() => {
+                  const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
+                  navigator.clipboard.writeText(msg); setMessage('Invite message copied!'); setTimeout(() => setMessage(''), 2000);
+                }} className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium">📋 Copy Invite</button>
+              </div>
+              <div className="flex gap-2 justify-center">
+                <a href={`https://wa.me/?text=${encodeURIComponent(`Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`)}`} target="_blank" className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium">WhatsApp</a>
+                <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Join @ReportAfrica! Use my referral code ${code} to sign up: https://reportafrica-web.vercel.app/register`)}`} target="_blank" className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium">𝕏</a>
+                {typeof navigator !== 'undefined' && navigator.share && (
+                  <button onClick={() => navigator.share({ text: `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register` }).catch(() => {})} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">📤 More</button>
+                )}
+              </div>
+            </>
+          )}
         </div>
         {message && <p className="text-xs text-green-600 mt-2">{message}</p>}
       </div>
