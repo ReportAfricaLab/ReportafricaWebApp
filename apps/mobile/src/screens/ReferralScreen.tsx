@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Share } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Share, Clipboard, Linking } from 'react-native';
 import { referralAPI } from '../services/api';
 import { useI18n } from '../store/useI18n';
 import { theme } from '../theme';
@@ -61,9 +61,28 @@ Sign up: https://reportafrica-web.vercel.app/register`,
       <View style={styles.codeBox}>
         <Text style={styles.codeLabel}>Your Referral Code</Text>
         <Text style={styles.codeValue}>{code || 'Tap Share to generate'}</Text>
-        <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-          <Text style={styles.shareBtnText}>📤 Share Code</Text>
-        </TouchableOpacity>
+        <View style={styles.btnRow}>
+          <TouchableOpacity style={styles.copyBtn} onPress={() => { Clipboard.setString(code); Alert.alert('Copied', 'Referral code copied!'); }}>
+            <Text style={styles.copyBtnText}>📋 Copy Code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.copyInviteBtn} onPress={() => {
+            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
+            Clipboard.setString(msg); Alert.alert('Copied', 'Invite message copied!');
+          }}>
+            <Text style={styles.copyInviteBtnText}>📋 Copy Invite</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.btnRow}>
+          <TouchableOpacity style={styles.whatsappBtn} onPress={() => {
+            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
+            Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+          }}>
+            <Text style={styles.whatsappBtnText}>WhatsApp</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
+            <Text style={styles.shareBtnText}>📤 More</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Stats */}
@@ -104,8 +123,15 @@ const styles = StyleSheet.create({
   codeBox: { backgroundColor: '#fff', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: theme.colors.light.border, alignItems: 'center', marginBottom: 20 },
   codeLabel: { fontSize: 12, color: theme.colors.light.textSecondary, marginBottom: 8 },
   codeValue: { fontSize: 22, fontWeight: '700', color: theme.colors.primary, letterSpacing: 1, marginBottom: 16 },
-  shareBtn: { paddingHorizontal: 24, paddingVertical: 12, backgroundColor: theme.colors.primary, borderRadius: 8 },
-  shareBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  btnRow: { flexDirection: 'row', gap: 8, marginBottom: 8, width: '100%' },
+  copyBtn: { flex: 1, paddingVertical: 12, backgroundColor: theme.colors.primary, borderRadius: 8, alignItems: 'center' },
+  copyBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  copyInviteBtn: { flex: 1, paddingVertical: 12, backgroundColor: '#1f2937', borderRadius: 8, alignItems: 'center' },
+  copyInviteBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  whatsappBtn: { flex: 1, paddingVertical: 12, backgroundColor: '#22c55e', borderRadius: 8, alignItems: 'center' },
+  whatsappBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  shareBtn: { flex: 1, paddingVertical: 12, backgroundColor: '#2563eb', borderRadius: 8, alignItems: 'center' },
+  shareBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
   statsRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   statBox: { flex: 1, backgroundColor: '#fff', padding: 16, borderRadius: 10, borderWidth: 1, borderColor: theme.colors.light.border, alignItems: 'center' },
   statValue: { fontSize: 24, fontWeight: '700', color: theme.colors.light.text },
