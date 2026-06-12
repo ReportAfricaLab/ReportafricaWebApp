@@ -112,6 +112,8 @@ export const livestreamAPI = {
   getRecordings: (country?: string) => api.get(`/livestream/recordings${country ? `?country=${country}` : ''}`),
   getById: (id: string) => api.get(`/livestream/${id}`),
   getChatHistory: (id: string) => api.get(`/livestream/${id}/chat`),
+  getTipBalance: () => api.get('/tips/balance'),
+  sendLiveTip: (livestreamId: string, amount: number) => api.post('/tips', { livestreamId, amount }),
 };
 
 export const searchAPI = {

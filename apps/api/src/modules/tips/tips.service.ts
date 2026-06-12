@@ -122,14 +122,30 @@ export class TipsService {
 
   // === SEND TIP ===
 
-  async sendTip(tipperId: string, dto: { reportId: string; amount: number; message?: string }) {
-    const report = await this.reportRepo.findOne({ where: { id: dto.reportId } });
-    if (!report) throw new NotFoundException('Report not found');
-    if (!report.authorId) throw new BadRequestException('Cannot tip anonymous reports');
+  async sendTip(tipperId: string, dto: { reportId?: string; livestreamId?: string; amount: number; message?: string }) {
+    if (!dto.reportId && !dto.livestreamId) throw new BadRequestException('reportId or livestreamId required');
 
-    // Self-tip prevention
-    if (tipperId === report.authorId) {
-      throw new ForbiddenException('Cannot tip your own report');
+    // Resolve the recipient (report author or stream broadcaster)
+    let recipientId: string;
+    let contextId: string;
+    let contextType: 'report' | 'livestream';
+
+    if (dto.livestreamId) {
+      const stream = await this.reportRepo.manager.getRepository('LivestreamEntity').findOne({ where: { id: dto.livestreamId } }) as any;
+      if (!stream) throw new NotFoundException('Stream not found');
+      if (!stream.userId) throw new BadRequestException('Cannot tip this stream');
+      if (tipperId === stream.userId) throw new ForbiddenException('Cannot tip your own stream');
+      recipientId = stream.userId;
+      contextId = dto.livestreamId;
+      contextType = 'livestream';
+    } else {
+      const report = await this.reportRepo.findOne({ where: { id: dto.reportId! } });
+      if (!report) throw new NotFoundException('Report not found');
+      if (!report.authorId) throw new BadRequestException('Cannot tip anonymous reports');
+      if (tipperId === report.authorId) throw new ForbiddenException('Cannot tip your own report');
+      recipientId = report.authorId;
+      contextId = dto.reportId!;
+      contextType = 'report';
     }
 
     // Check tipper balance
@@ -139,18 +155,17 @@ export class TipsService {
       throw new BadRequestException('Insufficient tip balance. Buy a tip pack first.');
     }
 
-    // Get reporter for payout
-    const reporter = await this.userRepo.findOne({ where: { id: report.authorId } });
+    // Get recipient for payout
+    const reporter = await this.userRepo.findOne({ where: { id: recipientId } });
     if (!reporter) throw new NotFoundException('Reporter not found');
 
     const tipperCurrency = tipper.tipCurrency || getCurrencyForCountry(tipper.country);
 
-    // Reporter MUST have bank details to receive tips
+    // Recipient MUST have bank details to receive tips
     if (!reporter.bankAccountNumber || !reporter.bankCode) {
-      // Still deduct from tipper but hold tip until reporter adds bank
       const tip = this.tipRepo.create({
-        reportId: dto.reportId,
-        reporterId: report.authorId,
+        reportId: contextType === 'report' ? contextId : undefined,
+        reporterId: recipientId,
         tipperId,
         amount: dto.amount,
         currency: tipperCurrency,
@@ -160,13 +175,13 @@ export class TipsService {
       });
       await this.tipRepo.save(tip);
 
-      await this.notifications.sendToUser(report.authorId, {
+      await this.notifications.sendToUser(recipientId, {
         title: '💰 Tip pending — add bank details!',
         body: `You received a tip but need to add your bank details to get paid.`,
-        data: { type: 'tip_pending', reportId: dto.reportId },
+        data: { type: 'tip_pending', reportId: contextId },
       });
 
-      return { status: 'pending_bank', message: 'Tip sent! Reporter needs to add bank details to receive it.', remainingBalance: tipper.tipBalance - dto.amount };
+      return { status: 'pending_bank', message: 'Tip sent! Recipient needs to add bank details to receive it.', remainingBalance: tipper.tipBalance - dto.amount };
     }
 
     const reporterCurrency = getCurrencyForCountry(reporter.country);
@@ -177,7 +192,8 @@ export class TipsService {
       throw new BadRequestException('Cross-country tipping is not yet available for this region. Coming soon!');
     }
 
-    const reporterAmount = Math.round(dto.amount * (1 - PLATFORM_CUT));
+    const platformCut = contextType === 'livestream' ? 0.30 : PLATFORM_CUT;
+    const reporterAmount = Math.round(dto.amount * (1 - platformCut));
 
     // Convert to reporter's currency if needed
     let payoutAmount = reporterAmount;
@@ -201,8 +217,8 @@ export class TipsService {
 
     // Create tip record
     const tip = this.tipRepo.create({
-      reportId: dto.reportId,
-      reporterId: report.authorId,
+      reportId: contextType === 'report' ? contextId : undefined,
+      reporterId: recipientId,
       tipperId,
       amount: dto.amount,
       currency: tipperCurrency,
@@ -232,23 +248,23 @@ export class TipsService {
       // If payout fails, earnings are still recorded
     }
 
-    // Record earnings in reporter's currency
+    // Record earnings
     await this.earningsService.recordEarning({
-      reporterId: report.authorId,
+      reporterId: recipientId,
       amount: payoutAmount,
       currency: payoutCurrency,
       source: 'tip',
       sourceId: tip.id,
-      description: dto.message ? `Tip: "${dto.message}"` : `Tip received${isCrossCurrency ? ` (converted from ${tipperCurrency})` : ''}`,
+      description: dto.message ? `Tip: "${dto.message}"` : `${contextType === 'livestream' ? 'Live stream' : 'Report'} tip received${isCrossCurrency ? ` (converted from ${tipperCurrency})` : ''}`,
       paymentReference: tip.paymentReference,
       payerName: tipper.displayName,
     });
 
-    // Notify reporter
-    await this.notifications.sendToUser(report.authorId, {
+    // Notify recipient
+    await this.notifications.sendToUser(recipientId, {
       title: '💰 You received a tip!',
-      body: `${tipper.displayName} tipped ${payoutCurrency} ${payoutAmount} on your report${dto.message ? `: "${dto.message}"` : ''}`,
-      data: { type: 'tip', reportId: dto.reportId },
+      body: `${tipper.displayName} tipped ${payoutCurrency} ${payoutAmount}${contextType === 'livestream' ? ' on your live stream' : ' on your report'}${dto.message ? `: "${dto.message}"` : ''}`,
+      data: { type: 'tip', reportId: contextId },
     });
 
     return { status: 'success', tip, remainingBalance: tipper.tipBalance - dto.amount };

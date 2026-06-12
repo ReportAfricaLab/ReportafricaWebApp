@@ -10,7 +10,8 @@ class BuyPackDto {
 }
 
 class SendTipDto {
-  @IsString() reportId: string;
+  @IsString() @IsOptional() reportId?: string;
+  @IsString() @IsOptional() livestreamId?: string;
   @IsNumber() @Min(1) amount: number;
   @IsString() @IsOptional() message?: string;
 }

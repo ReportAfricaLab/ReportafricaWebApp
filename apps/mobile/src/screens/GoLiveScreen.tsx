@@ -99,6 +99,8 @@ function StreamViewer({ stream, token, user, onBack, country }: { stream: Stream
   const [chatText, setChatText] = useState('');
   const [viewers, setViewers] = useState(stream.viewerCount || 0);
   const [viewerToken, setViewerToken] = useState<string | null>(null);
+  const [showTip, setShowTip] = useState(false);
+  const [tipBalance, setTipBalance] = useState(0);
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
@@ -188,6 +190,24 @@ function StreamViewer({ stream, token, user, onBack, country }: { stream: Stream
             </View>
           )}
         />
+        {showTip && (
+          <View style={styles.liveTipPanel}>
+            <Text style={styles.liveTipBalance}>Balance: {tipBalance.toLocaleString()}</Text>
+            <View style={styles.liveTipPresetsRow}>
+              {[500, 1000, 2000, 5000].map((amt) => (
+                <TouchableOpacity key={amt} style={styles.liveTipPreset} onPress={async () => {
+                  if (tipBalance < amt) { Alert.alert('Insufficient Balance', 'Buy a tip pack first.'); return; }
+                  try {
+                    const res = await livestreamAPI.sendLiveTip(stream.id, amt);
+                    setTipBalance(res.data?.remainingBalance ?? tipBalance - amt);
+                    setShowTip(false);
+                    socketRef.current?.emit('chat:send', { streamId: stream.id, text: `🎁 Tipped ${amt.toLocaleString()}!` });
+                  } catch { Alert.alert('Error', 'Tip failed'); }
+                }}><Text style={styles.liveTipPresetText}>{amt.toLocaleString()}</Text></TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
         <View style={styles.chatInputRow}>
           <TextInput
             style={styles.chatInput}
@@ -197,6 +217,10 @@ function StreamViewer({ stream, token, user, onBack, country }: { stream: Stream
             onSubmitEditing={sendMessage}
             returnKeyType="send"
           />
+          <TouchableOpacity style={styles.liveTipBtn} onPress={async () => {
+            if (!showTip) { try { const res = await livestreamAPI.getTipBalance(); setTipBalance(res.data?.balance || 0); } catch {} }
+            setShowTip(!showTip);
+          }}><Text style={styles.liveTipBtnText}>💰</Text></TouchableOpacity>
           <TouchableOpacity style={styles.chatSendBtn} onPress={sendMessage}>
             <Text style={styles.chatSendText}>Send</Text>
           </TouchableOpacity>
@@ -397,6 +421,13 @@ const styles = StyleSheet.create({
   chatInput: { flex: 1, backgroundColor: '#1a1a1a', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14, borderWidth: 1, borderColor: theme.colors.light.border },
   chatSendBtn: { backgroundColor: theme.colors.primary, paddingHorizontal: 16, borderRadius: 8, justifyContent: 'center' },
   chatSendText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  liveTipBtn: { backgroundColor: '#fef3c7', paddingHorizontal: 12, borderRadius: 8, justifyContent: 'center' },
+  liveTipBtnText: { fontSize: 16 },
+  liveTipPanel: { padding: 8, backgroundColor: '#1a1a0a', borderTopWidth: 1, borderTopColor: '#333' },
+  liveTipBalance: { fontSize: 10, color: '#d97706', marginBottom: 6 },
+  liveTipPresetsRow: { flexDirection: 'row', gap: 6 },
+  liveTipPreset: { flex: 1, paddingVertical: 8, backgroundColor: '#292524', borderRadius: 6, alignItems: 'center', borderWidth: 1, borderColor: '#d97706' },
+  liveTipPresetText: { fontSize: 11, fontWeight: '600', color: '#fbbf24' },
   // Go Live
   liveContainer: { flex: 1, backgroundColor: '#000', padding: 16, paddingTop: 50 },
   liveHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },

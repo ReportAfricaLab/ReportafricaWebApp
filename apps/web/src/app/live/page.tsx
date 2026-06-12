@@ -38,6 +38,9 @@ export default function LivePage() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [viewerCount, setViewerCount] = useState(0);
+  const [showLiveTip, setShowLiveTip] = useState(false);
+  const [tipBalance, setTipBalance] = useState(0);
+  const [tipCurrency, setTipCurrency] = useState('NGN');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [broadcastConfig, setBroadcastConfig] = useState<{ ingestEndpoint: string; streamKey: string } | null>(null);
@@ -334,11 +337,34 @@ export default function LivePage() {
                 <div ref={chatEndRef} />
               </div>
               <div className="p-3 border-t border-gray-100">
+                {showLiveTip && (
+                  <div className="mb-2 p-2 bg-amber-50 rounded-lg">
+                    <p className="text-[10px] text-amber-700 mb-1.5">Balance: {tipCurrency} {tipBalance.toLocaleString()}</p>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[500, 1000, 2000, 5000].map((amt) => (
+                        <button key={amt} onClick={async () => {
+                          if (tipBalance < amt) { alert('Insufficient balance. Buy a tip pack first.'); return; }
+                          try {
+                            const authToken = token || localStorage.getItem('ra_token');
+                            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+                            const res = await fetch(`${API_URL}/tips`, { method: 'POST', headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ livestreamId: streamId, amount: amt }) });
+                            if (res.ok) { const d = await res.json(); setTipBalance(d.remainingBalance ?? tipBalance - amt); setShowLiveTip(false); socketRef.current?.emit('chat:send', { roomId: `stream:${streamId}`, text: `🎁 Tipped ${tipCurrency} ${amt.toLocaleString()}!`, userId: user?.id, username: user?.username }); }
+                            else { const d = await res.json(); alert(d.message || 'Tip failed'); }
+                          } catch { alert('Tip failed'); }
+                        }} className="py-1.5 bg-white border border-amber-300 rounded text-[10px] font-semibold text-amber-800 hover:bg-amber-100">
+                          {amt.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                    <a href="/tip-packs" className="block text-[9px] text-amber-600 text-center mt-1.5 underline">Buy tip pack</a>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && sendChat()}
                     placeholder="Type a message..."
                     className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#0F7B6C]" />
+                  <button onClick={() => { if (!showLiveTip) { fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/tips/balance`, { headers: { Authorization: `Bearer ${token || localStorage.getItem('ra_token')}` } }).then(r => r.json()).then(d => { setTipBalance(d.balance || 0); setTipCurrency(d.currency || 'NGN'); }).catch(() => {}); } setShowLiveTip(!showLiveTip); }} className="px-2 py-2 bg-amber-100 text-amber-700 text-sm rounded-lg hover:bg-amber-200">💰</button>
                   <button onClick={sendChat} className="px-3 py-2 bg-[#0F7B6C] text-white text-sm rounded-lg hover:bg-[#0B6E4F]">Send</button>
                 </div>
               </div>
