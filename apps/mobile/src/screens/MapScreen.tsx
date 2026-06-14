@@ -24,7 +24,7 @@ const getSeverityColor = (severity: string) => {
   }
 };
 
-const buildMapHTML = (lat: number, lng: number, reports: MapReport[]) => {
+const buildMapHTML = (lat: number, lng: number, reports: MapReport[], showDangerZones = false) => {
   const markers = reports.map(r => `
     L.circleMarker([${r.latitude}, ${r.longitude}], {
       radius: 10, fillColor: '${getSeverityColor(r.severity)}', color: '#fff', weight: 2, fillOpacity: 0.9
@@ -32,6 +32,10 @@ const buildMapHTML = (lat: number, lng: number, reports: MapReport[]) => {
       window.ReactNativeWebView.postMessage(JSON.stringify({id:'${r.id}',title:${JSON.stringify(r.title)},category:'${r.category}',severity:'${r.severity}'}));
     });
   `).join('\n');
+
+  const dangerZones = showDangerZones ? reports.filter(r => ['police_security', 'emergency', 'traffic'].includes(r.category)).map(r => `
+    L.circle([${r.latitude}, ${r.longitude}], {radius: 300, fillColor: 'rgba(220,38,38,0.2)', color: 'rgba(220,38,38,0.5)', weight: 2, fillOpacity: 0.3}).addTo(map);
+  `).join('\n') : '';
 
   return `<!DOCTYPE html>
 <html><head>
@@ -48,6 +52,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 L.circleMarker([${lat}, ${lng}], {radius:8, fillColor:'#0F7B6C', color:'#fff', weight:3, fillOpacity:1}).addTo(map).bindPopup('You are here');
 ${markers}
+${dangerZones}
 </script>
 </body></html>`;
 };
@@ -58,6 +63,8 @@ export default function MapScreen() {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [selected, setSelected] = useState<MapReport | null>(null);
   const [loading, setLoading] = useState(true);
+  const [safeRouteActive, setSafeRouteActive] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +75,10 @@ export default function MapScreen() {
           const res = await reportsAPI.getNearby(loc.latitude, loc.longitude, 15);
           setReports(Array.isArray(res.data) ? res.data : []);
         }
+        // Check subscription
+        const { default: api } = require('../services/api');
+        const subRes = await api.get('/subscription/my').catch(() => null);
+        if (subRes?.data?.active) setIsPremium(true);
       } catch (err) {
         console.log('Location error:', err);
       } finally {
@@ -95,7 +106,7 @@ export default function MapScreen() {
     <View style={styles.container}>
       <WebView
         style={styles.map}
-        source={{ html: buildMapHTML(location.latitude, location.longitude, reports) }}
+        source={{ html: buildMapHTML(location.latitude, location.longitude, reports, safeRouteActive) }}
         onMessage={onMessage}
         javaScriptEnabled
         domStorageEnabled
@@ -105,6 +116,13 @@ export default function MapScreen() {
       <View style={styles.badge}>
         <Text style={styles.badgeText}>{reports.length} nearby</Text>
       </View>
+
+      <TouchableOpacity style={[styles.safeRouteBtn, safeRouteActive && styles.safeRouteBtnActive]} onPress={() => {
+        if (!isPremium) { const { Alert } = require('react-native'); Alert.alert('Premium Feature', 'Safe Route requires a Reporter subscription. Go to Profile > Subscription to upgrade.'); return; }
+        setSafeRouteActive(!safeRouteActive);
+      }}>
+        <Text style={[styles.safeRouteBtnText, safeRouteActive && styles.safeRouteBtnTextActive]}>🛡️ {safeRouteActive ? 'Safe Route ON' : 'Safe Route'}{!isPremium ? ' PRO' : ''}</Text>
+      </TouchableOpacity>
 
       {selected && (
         <View style={styles.bottomCard}>
@@ -130,6 +148,10 @@ const styles = StyleSheet.create({
   map: { flex: 1, width: Dimensions.get('window').width },
   badge: { position: 'absolute', top: 60, alignSelf: 'center', backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
   badgeText: { fontSize: 12, fontWeight: '600', color: theme.colors.light.text },
+  safeRouteBtn: { position: 'absolute', top: 60, left: 16, backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
+  safeRouteBtnActive: { backgroundColor: '#dc2626' },
+  safeRouteBtnText: { fontSize: 12, fontWeight: '600', color: theme.colors.light.text },
+  safeRouteBtnTextActive: { color: '#fff' },
   bottomCard: { position: 'absolute', bottom: 30, left: 16, right: 16, backgroundColor: '#fff', borderRadius: 14, padding: 16, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 5 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   severityDot: { width: 10, height: 10, borderRadius: 5 },

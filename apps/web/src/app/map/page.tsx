@@ -31,12 +31,21 @@ export default function MapPage() {
   const [selectedReport, setSelectedReport] = useState<MapReport | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReady, setMapReady] = useState(false);
+  const [safeRouteActive, setSafeRouteActive] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setUserLocation({ lat: 6.5244, lng: 3.3792 }) // Default Lagos
     );
+    // Check subscription
+    const token = localStorage.getItem('ra_token');
+    if (token) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      fetch(`${API_URL}/subscription/my`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json()).then(d => setIsPremium(d.active)).catch(() => {});
+    }
   }, []);
 
   // Initialize map
@@ -111,7 +120,30 @@ export default function MapPage() {
   return (
     <div className="h-[calc(100vh-4rem)] flex">
       {/* Map */}
-      <div ref={mapContainer} className="flex-1" />
+      <div ref={mapContainer} className="flex-1 relative">
+        {/* Safe Route Toggle */}
+        <div className="absolute top-4 left-4 z-10">
+          <button onClick={() => {
+            if (!isPremium) { alert('Safe Route is a Premium feature. Subscribe at /subscription to unlock.'); return; }
+            const next = !safeRouteActive;
+            setSafeRouteActive(next);
+            if (map.current && mapReady) {
+              if (next) {
+                const dangerReports = reports.filter(r => ['police_security', 'emergency', 'traffic'].includes(r.category));
+                const geojson = { type: 'FeatureCollection' as const, features: dangerReports.map(r => ({ type: 'Feature' as const, geometry: { type: 'Point' as const, coordinates: [Number(r.longitude), Number(r.latitude)] }, properties: {} })) };
+                if (map.current.getSource('danger-zones')) { (map.current.getSource('danger-zones') as any).setData(geojson); }
+                else { map.current.addSource('danger-zones', { type: 'geojson', data: geojson }); map.current.addLayer({ id: 'danger-heatmap', type: 'circle', source: 'danger-zones', paint: { 'circle-radius': 40, 'circle-color': 'rgba(220, 38, 38, 0.25)', 'circle-stroke-width': 2, 'circle-stroke-color': 'rgba(220, 38, 38, 0.5)' } }); }
+              } else {
+                if (map.current.getLayer('danger-heatmap')) map.current.removeLayer('danger-heatmap');
+                if (map.current.getSource('danger-zones')) map.current.removeSource('danger-zones');
+              }
+            }
+          }} className={`px-4 py-2 rounded-lg text-sm font-medium shadow-md transition ${safeRouteActive ? 'bg-red-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}>
+            🛡️ {safeRouteActive ? 'Safe Route ON' : 'Safe Route'}
+            {!isPremium && <span className="ml-1 text-[10px]">PRO</span>}
+          </button>
+        </div>
+      </div>
 
       {/* Sidebar */}
       <div className="w-80 bg-white border-l border-gray-200 overflow-y-auto hidden lg:block">
