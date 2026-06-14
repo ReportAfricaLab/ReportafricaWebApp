@@ -80,6 +80,8 @@ async function bootstrap() {
         ALTER TABLE livestreams ADD COLUMN IF NOT EXISTS election_polling_unit VARCHAR DEFAULT NULL;
         ALTER TABLE reports ALTER COLUMN author_id DROP NOT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS content_hash VARCHAR DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR DEFAULT 'free';
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires TIMESTAMP DEFAULT NULL;
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {

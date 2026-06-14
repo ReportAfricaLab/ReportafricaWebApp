@@ -91,6 +91,12 @@ export class UserEntity {
   @Column({ name: 'tip_currency', length: 3, nullable: true })
   tipCurrency: string;
 
+  @Column({ name: 'subscription_tier', default: 'free' })
+  subscriptionTier: string; // free, pro, elite, legend
+
+  @Column({ name: 'subscription_expires', nullable: true })
+  subscriptionExpires: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

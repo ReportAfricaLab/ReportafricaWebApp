@@ -39,6 +39,7 @@ import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { VoiceModule } from './modules/voice/voice.module';
 import { AiModule } from './modules/ai/ai.module';
 import { BusinessModule } from './modules/business/business.module';
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 
 @Module({
   imports: [
@@ -124,6 +125,7 @@ import { BusinessModule } from './modules/business/business.module';
     VoiceModule,
     AiModule,
     BusinessModule,
+    SubscriptionModule,
   ],
 })
 export class AppModule {}
