@@ -38,6 +38,7 @@ import { ReferralModule } from './modules/referral/referral.module';
 import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { VoiceModule } from './modules/voice/voice.module';
 import { AiModule } from './modules/ai/ai.module';
+import { BusinessModule } from './modules/business/business.module';
 
 @Module({
   imports: [
@@ -122,6 +123,7 @@ import { AiModule } from './modules/ai/ai.module';
     WatchlistModule,
     VoiceModule,
     AiModule,
+    BusinessModule,
   ],
 })
 export class AppModule {}

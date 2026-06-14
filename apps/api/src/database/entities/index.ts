@@ -15,3 +15,4 @@ export { TipEntity } from './tip.entity';
 export { ReferralEntity } from './referral.entity';
 export { WatchlistEntity } from './watchlist.entity';
 export { NotificationEntity } from './notification.entity';
+export { BusinessEntity } from './business.entity';
