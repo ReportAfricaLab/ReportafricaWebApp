@@ -16,3 +16,5 @@ export { ReferralEntity } from './referral.entity';
 export { WatchlistEntity } from './watchlist.entity';
 export { NotificationEntity } from './notification.entity';
 export { BusinessEntity } from './business.entity';
+export { CourseEntity } from './course.entity';
+export { LessonEntity } from './lesson.entity';

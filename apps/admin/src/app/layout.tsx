@@ -19,6 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <a href="/reports" className="block px-3 py-2 rounded hover:bg-gray-800 text-gray-300">Reports</a>
               <a href="/campaigns" className="block px-3 py-2 rounded hover:bg-gray-800 text-gray-300">Campaigns</a>
               <a href="/revenue" className="block px-3 py-2 rounded hover:bg-gray-800 text-gray-300">Revenue</a>
+              <a href="/courses" className="block px-3 py-2 rounded hover:bg-gray-800 text-gray-300">🎓 Courses</a>
             </nav>
           </aside>
           <main className="flex-1 ml-64 p-8">{children}</main>

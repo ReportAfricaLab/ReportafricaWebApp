@@ -40,6 +40,7 @@ import { VoiceModule } from './modules/voice/voice.module';
 import { AiModule } from './modules/ai/ai.module';
 import { BusinessModule } from './modules/business/business.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
+import { CoursesModule } from './modules/courses/courses.module';
 
 @Module({
   imports: [
@@ -126,6 +127,7 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
     AiModule,
     BusinessModule,
     SubscriptionModule,
+    CoursesModule,
   ],
 })
 export class AppModule {}

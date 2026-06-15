@@ -40,4 +40,12 @@ export const adminAPI = {
   rejectCampaign: (id: string) => adminFetch(`/admin/campaigns/${id}/reject`, { method: 'PATCH' }),
   moderationQueue: (page = 1) => adminFetch(`/admin/moderation-queue?page=${page}`),
   revenue: () => adminFetch('/admin/revenue'),
+  // Courses
+  getCourses: () => adminFetch('/admin/courses'),
+  createCourse: (data: any) => adminFetch('/admin/courses', { method: 'POST', body: JSON.stringify(data) }),
+  updateCourse: (id: string, data: any) => adminFetch(`/admin/courses/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteCourse: (id: string) => adminFetch(`/admin/courses/${id}`, { method: 'DELETE' }),
+  addLesson: (courseId: string, data: any) => adminFetch(`/admin/courses/${courseId}/lessons`, { method: 'POST', body: JSON.stringify(data) }),
+  updateLesson: (id: string, data: any) => adminFetch(`/admin/courses/lessons/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteLesson: (id: string) => adminFetch(`/admin/courses/lessons/${id}`, { method: 'DELETE' }),
 };
