@@ -201,6 +201,14 @@ export default function ProfileScreen() {
             <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => {
+          const { token: t } = useAppStore.getState();
+          Linking.openURL(`https://reportafrica-academy.vercel.app/auth?token=${t || ''}`);
+        }}>
+          <Text style={styles.menuIcon}>🎓</Text>
+          <Text style={[styles.menuText, { color: colors.text }]}>Journalist Academy</Text>
+          <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Settings */}
@@ -269,13 +277,6 @@ export default function ProfileScreen() {
       }}>
         <Text style={styles.wipeText}>🗑️ Clear My Data</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.academyBtn} onPress={() => {
-        const { token: t } = useAppStore.getState();
-        Linking.openURL(`https://reportafrica-academy.vercel.app/auth?token=${t || ''}`);
-      }}>
-        <Text style={styles.academyBtnText}>🎓 Journalist Academy</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -326,6 +327,4 @@ const styles = StyleSheet.create({
   logoutText: { color: '#dc2626', fontSize: theme.fontSize.md, fontWeight: '600' },
   wipeBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 10, paddingVertical: 14, backgroundColor: '#f3f4f6', borderRadius: theme.borderRadius.md, alignItems: 'center' },
   wipeText: { color: '#6b7280', fontSize: theme.fontSize.sm, fontWeight: '500' },
-  academyBtn: { marginHorizontal: 16, marginBottom: 40, paddingVertical: 14, backgroundColor: '#ecfdf5', borderRadius: theme.borderRadius.md, alignItems: 'center' },
-  academyBtnText: { color: '#065f46', fontSize: theme.fontSize.md, fontWeight: '600' },
 });
