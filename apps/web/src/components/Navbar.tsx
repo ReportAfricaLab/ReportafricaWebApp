@@ -174,7 +174,7 @@ export default function Navbar() {
 
       {/* Mobile Menu — includes nav links + profile */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B]">
+        <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="flex flex-col px-4 py-3 space-y-1">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}
@@ -209,6 +209,7 @@ export default function Navbar() {
                   { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
                   { href: '/watchlist', icon: '📍', label: 'Watchlists' },
                   { href: '/referral', icon: '🎁', label: 'Referral' },
+                  { href: 'https://reportafrica-academy.vercel.app', icon: '🎓', label: 'Academy' },
                 ].map((item) => (
                   <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 py-2.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
