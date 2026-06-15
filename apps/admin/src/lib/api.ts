@@ -48,4 +48,5 @@ export const adminAPI = {
   addLesson: (courseId: string, data: any) => adminFetch(`/admin/courses/${courseId}/lessons`, { method: 'POST', body: JSON.stringify(data) }),
   updateLesson: (id: string, data: any) => adminFetch(`/admin/courses/lessons/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   deleteLesson: (id: string) => adminFetch(`/admin/courses/lessons/${id}`, { method: 'DELETE' }),
+  getEnrollments: () => adminFetch('/admin/courses/enrollments'),
 };

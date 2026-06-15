@@ -99,4 +99,9 @@ export class AdminCoursesController {
   deleteLesson(@Param('id') id: string) {
     return this.service.deleteLesson(id);
   }
+
+  @Get('enrollments')
+  getEnrollments() {
+    return this.service.getAllEnrollments();
+  }
 }

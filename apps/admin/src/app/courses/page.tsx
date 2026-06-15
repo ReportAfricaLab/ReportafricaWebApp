@@ -8,6 +8,8 @@ export default function CoursesPage() {
   const [lessonForm, setLessonForm] = useState<any>(null);
   const [form, setForm] = useState({ title: '', description: '', icon: '📚', usdPrice: 13, thumbnailUrl: '', isPublished: false, sortOrder: 0 });
   const [loading, setLoading] = useState(true);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+  const [showEnrollments, setShowEnrollments] = useState(false);
 
   const load = async () => {
     try { const data = await adminAPI.getCourses(); setCourses(data); } catch {}
@@ -133,6 +135,26 @@ export default function CoursesPage() {
         ))}
 
         {courses.length === 0 && <p className="text-center text-gray-400 py-8">No courses yet. Click "Add Course" to create one.</p>}
+      </div>
+
+      {/* Enrollments & Certificates */}
+      <div className="mt-8">
+        <button onClick={async () => { if (!showEnrollments) { try { const data = await adminAPI.getEnrollments(); setEnrollments(data); } catch {} } setShowEnrollments(!showEnrollments); }}
+          className="text-sm font-medium text-[#0F7B6C] hover:underline">{showEnrollments ? '▼ Hide' : '▶ Show'} Enrollments & Certificates ({enrollments.length})</button>
+        {showEnrollments && (
+          <div className="mt-4 space-y-2">
+            {enrollments.length === 0 && <p className="text-gray-400 text-sm">No enrollments yet</p>}
+            {enrollments.map((e: any) => (
+              <div key={e.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg text-sm">
+                <span className="font-medium text-gray-900">{e.user?.displayName || e.user?.username || 'User'}</span>
+                <span className="text-gray-500">{e.course?.title || (e.courseId === 'master' ? '👑 Master' : e.courseId)}</span>
+                <span className="text-xs text-gray-400">{e.completedLessons?.length || 0} lessons done</span>
+                {e.completedAt && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">✓ Certified</span>}
+                {e.certificateId && <span className="text-xs font-mono text-blue-600">{e.certificateId}</span>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

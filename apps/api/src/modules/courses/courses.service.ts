@@ -128,6 +128,8 @@ export class CoursesService {
           certificateId: 'RA-MASTER-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
         });
         await this.enrollmentRepo.save(master);
+        // Set user as certified
+        await this.enrollmentRepo.manager.getRepository('UserEntity').update(userId, { isCertified: true });
       }
     }
   }
@@ -146,5 +148,13 @@ export class CoursesService {
       completedAt: enrollment.completedAt,
       certificateId: enrollment.certificateId,
     };
+  }
+
+  async getAllEnrollments() {
+    return this.enrollmentRepo.find({
+      relations: ['user', 'course'],
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
   }
 }

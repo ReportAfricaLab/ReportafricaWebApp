@@ -82,6 +82,7 @@ async function bootstrap() {
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS content_hash VARCHAR DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR DEFAULT 'free';
         ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires TIMESTAMP DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS is_certified BOOLEAN DEFAULT FALSE;
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {

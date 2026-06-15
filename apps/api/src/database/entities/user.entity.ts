@@ -97,6 +97,9 @@ export class UserEntity {
   @Column({ name: 'subscription_expires', nullable: true })
   subscriptionExpires: Date;
 
+  @Column({ name: 'is_certified', default: false })
+  isCertified: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
