@@ -196,7 +196,7 @@ export class LivestreamService {
 
   private async generateToken(roomName: string, identity: string, isPublisher: boolean, name?: string): Promise<string> {
     if (!this.livekitApiKey || !this.livekitApiSecret) {
-      return 'mock_token_' + Date.now();
+      throw new Error('LiveKit not configured. Set LIVEKIT_API_KEY and LIVEKIT_API_SECRET.');
     }
 
     const token = new AccessToken(this.livekitApiKey, this.livekitApiSecret, {

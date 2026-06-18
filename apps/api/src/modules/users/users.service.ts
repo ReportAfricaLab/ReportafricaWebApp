@@ -56,4 +56,36 @@ export class UsersService {
   async updatePassword(id: string, hashedPassword: string): Promise<void> {
     await this.userRepo.update(id, { password: hashedPassword, passwordResetToken: undefined as any, passwordResetExpires: undefined as any });
   }
+
+  async setEmailVerificationToken(id: string, token: string): Promise<void> {
+    await this.userRepo.update(id, { emailVerificationToken: token });
+  }
+
+  async findByEmailVerificationToken(token: string): Promise<UserEntity | null> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .addSelect('user.emailVerificationToken')
+      .where('user.emailVerificationToken = :token', { token })
+      .getOne();
+  }
+
+  async verifyEmail(id: string): Promise<void> {
+    await this.userRepo.update(id, { isEmailVerified: true, emailVerificationToken: undefined as any });
+  }
+
+  async softDeleteAccount(id: string): Promise<void> {
+    await this.userRepo.update(id, {
+      deletedAt: new Date(),
+      email: `deleted_${id}@removed.local`,
+      username: `deleted_${id}`,
+      displayName: 'Deleted User',
+      avatar: null as any,
+      phone: null as any,
+      fcmToken: null as any,
+      bankCode: null as any,
+      bankName: null as any,
+      bankAccountNumber: null as any,
+      bankAccountName: null as any,
+    });
+  }
 }

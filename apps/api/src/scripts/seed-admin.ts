@@ -11,7 +11,7 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@reportafrica.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@reportafrica.africa';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ChangeThisPassword123!';
 const ADMIN_USERNAME = 'admin';
 const ADMIN_COUNTRY = 'NG';

@@ -100,6 +100,15 @@ export class UserEntity {
   @Column({ name: 'is_certified', default: false })
   isCertified: boolean;
 
+  @Column({ name: 'is_email_verified', default: false })
+  isEmailVerified: boolean;
+
+  @Column({ name: 'email_verification_token', nullable: true, select: false })
+  emailVerificationToken: string;
+
+  @Column({ name: 'deleted_at', nullable: true })
+  deletedAt: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

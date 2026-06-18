@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const getStorage = () => require('@react-native-async-storage/async-storage').default;
 
-const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.africa/api/v1';
 
 const COUNTRY_DEFAULT_LANGUAGE: Record<string, string> = {
   NG: 'en', GH: 'en', KE: 'en', ZA: 'en', UG: 'en', RW: 'en',

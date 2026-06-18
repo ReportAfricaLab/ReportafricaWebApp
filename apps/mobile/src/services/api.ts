@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // For Android emulator use 10.0.2.2, for physical device use your computer's IP (run: ipconfig | findstr IPv4)
 const LOCAL_IP = '10.162.41.17';
-const API_BASE_URL = 'https://34-242-14-140.nip.io/api/v1';
-export const WS_URL = 'https://34-242-14-140.nip.io';
+const API_BASE_URL = 'https://api.reportafrica.africa/api/v1';
+export const WS_URL = 'https://api.reportafrica.africa';
 
 // WebSocket connection helper with JWT auth
 export const getSocketConfig = () => ({

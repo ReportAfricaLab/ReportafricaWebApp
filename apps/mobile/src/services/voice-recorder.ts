@@ -2,7 +2,7 @@ import { Audio } from 'expo-av';
 import axios from 'axios';
 import { getAuthToken } from './api';
 
-const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.africa/api/v1';
 
 class VoiceRecorderService {
   private recording: Audio.Recording | null = null;

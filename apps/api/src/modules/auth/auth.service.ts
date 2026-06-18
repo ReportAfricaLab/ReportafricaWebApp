@@ -46,8 +46,12 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(dto.password, 12);
     const user = await this.usersService.create({ ...dto, password: hashedPassword });
 
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    await this.usersService.setEmailVerificationToken(user.id, verificationToken);
+
     const tokens = await this.generateTokens(user.id, user.email, user.country);
-    return { user: { id: user.id, email: user.email, username: user.username, country: user.country }, ...tokens };
+    return { user: { id: user.id, email: user.email, username: user.username, country: user.country, verificationToken }, ...tokens };
   }
 
   async login(dto: LoginDto) {
@@ -150,6 +154,45 @@ export class AuthService {
     await this.logoutAllDevices(user.id);
 
     return { message: 'Password reset successful. You can now login.' };
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException('User not found');
+
+    // Get user with password field
+    const userWithPass = await this.usersService.findByEmailWithPassword(user.email);
+    if (!userWithPass || !userWithPass.password) throw new BadRequestException('Cannot change password for OAuth accounts');
+
+    const isValid = await bcrypt.compare(currentPassword, userWithPass.password);
+    if (!isValid) throw new UnauthorizedException('Current password is incorrect');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.usersService.updatePassword(userId, hashedPassword);
+
+    // Invalidate all other sessions
+    await this.logoutAllDevices(userId);
+
+    return { message: 'Password changed successfully. Please log in again.' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.usersService.findByEmailVerificationToken(token);
+    if (!user) throw new BadRequestException('Invalid verification token');
+
+    await this.usersService.verifyEmail(user.id);
+    return { message: 'Email verified successfully' };
+  }
+
+  async resendVerification(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new UnauthorizedException('User not found');
+    if (user.isEmailVerified) return { message: 'Email already verified' };
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    await this.usersService.setEmailVerificationToken(userId, verificationToken);
+
+    return { message: 'Verification email sent', verificationToken };
   }
 
   private async generateTokens(userId: string, email: string, country: string) {

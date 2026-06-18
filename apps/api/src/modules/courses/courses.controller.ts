@@ -44,8 +44,13 @@ export class CoursesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post(':courseId/enroll')
-  enroll(@Request() req: any, @Param('courseId') courseId: string) {
-    return this.service.enroll(req.user.id, courseId);
+  enroll(@Request() req: any, @Param('courseId') courseId: string, @Body() body: any) {
+    return this.service.enroll(req.user.id, courseId, body.email, body.country);
+  }
+
+  @Get('enroll/verify/:reference')
+  verifyEnrollment(@Param('reference') reference: string) {
+    return this.service.verifyEnrollmentPayment(reference);
   }
 
   @UseGuards(AuthGuard('jwt'))

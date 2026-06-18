@@ -1,13 +1,15 @@
-import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthGuard } from '@nestjs/passport';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { createHmac } from 'crypto';
 import { UserEntity } from '../../database/entities';
 
-// Canary state — persisted in memory, refreshed by admin
-let canaryState = {
+const CANARY_KEY = 'canary:state';
+const DEFAULT_CANARY = {
   lastVerifiedSafe: new Date().toISOString(),
   message: 'ReportAfrica is operating freely and independently.',
 };
@@ -17,6 +19,7 @@ export class HealthController {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    @Optional() @Inject(CACHE_MANAGER) private readonly cache?: Cache,
   ) {}
 
   @Get()
@@ -63,12 +66,18 @@ export class HealthController {
   }
 
   @Get('canary')
-  getCanary() {
+  async getCanary() {
+    let canaryState = DEFAULT_CANARY;
+    if (this.cache) {
+      const stored = await this.cache.get<typeof DEFAULT_CANARY>(CANARY_KEY);
+      if (stored) canaryState = stored;
+    }
+
     const secret = process.env.JWT_SECRET || 'dev-secret';
     const payload = `${canaryState.lastVerifiedSafe}|${canaryState.message}`;
     const signature = createHmac('sha256', secret).update(payload).digest('hex');
     const ageMs = Date.now() - new Date(canaryState.lastVerifiedSafe).getTime();
-    const expired = ageMs > 7 * 24 * 60 * 60 * 1000; // >7 days = expired
+    const expired = ageMs > 7 * 24 * 60 * 60 * 1000;
 
     return {
       lastVerifiedSafe: canaryState.lastVerifiedSafe,
@@ -81,11 +90,14 @@ export class HealthController {
 
   @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Patch('canary')
-  refreshCanary(@Body() body: { message?: string }) {
-    canaryState = {
+  async refreshCanary(@Body() body: { message?: string }) {
+    const canaryState = {
       lastVerifiedSafe: new Date().toISOString(),
       message: body.message || 'ReportAfrica is operating freely and independently.',
     };
+    if (this.cache) {
+      await this.cache.set(CANARY_KEY, canaryState, 30 * 24 * 60 * 60 * 1000); // 30 days TTL
+    }
     return { status: 'refreshed', ...canaryState };
   }
 }

@@ -204,7 +204,7 @@ export class DonationsService {
       await this.koraPayService.initializeSplitPayment({
         amount: payoutAmount,
         currency: campaign.currency,
-        customerEmail: 'payout@reportafrica.com',
+        customerEmail: 'payout@reportafrica.africa',
         customerName: campaign.beneficiaryName || 'Campaign Beneficiary',
         reference,
         reporterBankAccount: {

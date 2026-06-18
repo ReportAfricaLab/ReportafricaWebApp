@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from './users.service';
 import { TipsService } from '../tips/tips.service';
@@ -34,5 +34,12 @@ export class UsersController {
     }
 
     return updated;
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('me')
+  async deleteAccount(@Request() req: any) {
+    await this.usersService.softDeleteAccount(req.user.id);
+    return { message: 'Account deleted successfully. All personal data has been removed.' };
   }
 }

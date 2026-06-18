@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { CourseEntity, LessonEntity, EnrollmentEntity } from '../../database/entities';
+import axios from 'axios';
 
 @Injectable()
 export class CoursesService {
+  private readonly paystackSecret: string;
+
   constructor(
     @InjectRepository(CourseEntity)
     private readonly courseRepo: Repository<CourseEntity>,
@@ -12,7 +16,10 @@ export class CoursesService {
     private readonly lessonRepo: Repository<LessonEntity>,
     @InjectRepository(EnrollmentEntity)
     private readonly enrollmentRepo: Repository<EnrollmentEntity>,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.paystackSecret = this.config.get('PAYSTACK_SECRET_KEY', '');
+  }
 
   // === PUBLIC ===
 
@@ -85,13 +92,70 @@ export class CoursesService {
     return 'RA-CERT-' + Math.random().toString(36).substring(2, 10).toUpperCase();
   }
 
-  async enroll(userId: string, courseId: string) {
+  async enroll(userId: string, courseId: string, email?: string, country?: string) {
     const course = await this.courseRepo.findOne({ where: { id: courseId } });
     if (!course) throw new NotFoundException('Course not found');
     const existing = await this.enrollmentRepo.findOne({ where: { userId, courseId } });
-    if (existing) return existing;
+    if (existing) return { enrolled: true, enrollment: existing };
+
+    // Free course or price is 0
+    if (!course.usdPrice || course.usdPrice <= 0) {
+      const enrollment = this.enrollmentRepo.create({ userId, courseId, completedLessons: [] });
+      const saved = await this.enrollmentRepo.save(enrollment);
+      return { enrolled: true, enrollment: saved };
+    }
+
+    // Paid course — initiate Paystack
+    if (!this.paystackSecret || !email) {
+      throw new BadRequestException('Payment configuration error');
+    }
+
+    const amount = this.getLocalAmount(course.usdPrice, country || 'NG');
+    const currency = this.getCurrency(country || 'NG');
+    const reference = `academy_${courseId}_${userId}_${Date.now()}`;
+
+    try {
+      const res = await axios.post('https://api.paystack.co/transaction/initialize', {
+        email,
+        amount: amount * 100,
+        currency,
+        reference,
+        callback_url: `https://academy.reportafrica.africa/course/${courseId}?enrolled=true`,
+        metadata: { userId, courseId, type: 'academy_enrollment' },
+      }, { headers: { Authorization: `Bearer ${this.paystackSecret}` } });
+
+      return { paymentUrl: res.data?.data?.authorization_url, reference };
+    } catch {
+      throw new BadRequestException('Payment initialization failed');
+    }
+  }
+
+  async verifyEnrollmentPayment(reference: string) {
+    if (!this.paystackSecret) throw new BadRequestException('Payment not configured');
+    const res = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+      headers: { Authorization: `Bearer ${this.paystackSecret}` },
+    });
+    if (res.data?.data?.status !== 'success') return { enrolled: false };
+
+    const { userId, courseId } = res.data.data.metadata || {};
+    if (!userId || !courseId) return { enrolled: false };
+
+    const existing = await this.enrollmentRepo.findOne({ where: { userId, courseId } });
+    if (existing) return { enrolled: true, enrollment: existing };
+
     const enrollment = this.enrollmentRepo.create({ userId, courseId, completedLessons: [] });
-    return this.enrollmentRepo.save(enrollment);
+    const saved = await this.enrollmentRepo.save(enrollment);
+    return { enrolled: true, enrollment: saved };
+  }
+
+  private getLocalAmount(usdPrice: number, country: string): number {
+    const rates: Record<string, number> = { NG: 1500, GH: 12, KE: 150, ZA: 18, UG: 3700, EG: 48 };
+    return Math.round(usdPrice * (rates[country] || 1500));
+  }
+
+  private getCurrency(country: string): string {
+    const map: Record<string, string> = { NG: 'NGN', GH: 'GHS', KE: 'KES', ZA: 'ZAR' };
+    return map[country] || 'NGN';
   }
 
   async completeLesson(userId: string, courseId: string, lessonId: string) {

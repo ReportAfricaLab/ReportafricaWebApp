@@ -150,9 +150,9 @@ export default function RegisterScreen({ navigation }: any) {
         </View>
         <Text style={styles.termsText}>
           I agree to the{' '}
-          <Text style={styles.termsLink} onPress={() => Linking.openURL('https://reportafrica-web.vercel.app/terms')}>Terms</Text>
+          <Text style={styles.termsLink} onPress={() => Linking.openURL('https://reportafrica.africa/terms')}>Terms</Text>
           {' '}and{' '}
-          <Text style={styles.termsLink} onPress={() => Linking.openURL('https://reportafrica-web.vercel.app/privacy')}>Privacy Policy</Text>
+          <Text style={styles.termsLink} onPress={() => Linking.openURL('https://reportafrica.africa/privacy')}>Privacy Policy</Text>
         </Text>
       </TouchableOpacity>
 

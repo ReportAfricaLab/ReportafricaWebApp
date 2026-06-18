@@ -28,3 +28,4 @@ function AuthHandler() {
 export default function AuthPage() {
   return <Suspense fallback={<div className="text-center py-20 text-gray-400">Loading...</div>}><AuthHandler /></Suspense>;
 }
+

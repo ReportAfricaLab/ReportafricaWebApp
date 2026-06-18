@@ -10,7 +10,7 @@ import { theme } from '../theme';
 import { COUNTRY_CONFIG } from '../constants';
 import axios from 'axios';
 
-const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.com/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.africa/api/v1';
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -209,11 +209,24 @@ export default function ProfileScreen() {
           <Text style={[styles.menuText, { color: colors.text }]}>Journalist Academy</Text>
           <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
         </TouchableOpacity>
+        {user?.role === 'admin' && (
+          <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => Linking.openURL('https://admin.reportafrica.africa')}>
+            <Text style={styles.menuIcon}>⚙️</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>Admin Panel</Text>
+            <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Settings */}
       <View style={styles.menu}>
         <Text style={[styles.menuSectionLabel, { color: colors.textSecondary }]}>Settings</Text>
+
+        <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => navigation.navigate('ChangePassword')}>
+          <Text style={styles.menuIcon}>🔑</Text>
+          <Text style={[styles.menuText, { color: colors.text }]}>Change Password</Text>
+          <Text style={[styles.menuArrow, { color: colors.textSecondary }]}>›</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => setShowLangPicker(!showLangPicker)}>
           <Text style={styles.menuIcon}>🌍</Text>
@@ -277,6 +290,25 @@ export default function ProfileScreen() {
       }}>
         <Text style={styles.wipeText}>🗑️ Clear My Data</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity style={styles.deleteAccountBtn} onPress={() => {
+        Alert.alert(
+          '⚠️ Delete Account',
+          'This will permanently delete your ReportAfrica account and all associated data. This action cannot be undone.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete My Account', style: 'destructive', onPress: async () => {
+              try {
+                await axios.delete(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } });
+                Alert.alert('Account Deleted', 'Your account has been permanently deleted.');
+                logout();
+              } catch { Alert.alert('Error', 'Failed to delete account. Try again.'); }
+            }},
+          ]
+        );
+      }}>
+        <Text style={styles.deleteAccountText}>🚫 Delete My Account</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -327,6 +359,8 @@ const styles = StyleSheet.create({
   logoutText: { color: '#dc2626', fontSize: theme.fontSize.md, fontWeight: '600' },
   wipeBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 10, paddingVertical: 14, backgroundColor: '#f3f4f6', borderRadius: theme.borderRadius.md, alignItems: 'center' },
   wipeText: { color: '#6b7280', fontSize: theme.fontSize.sm, fontWeight: '500' },
+  deleteAccountBtn: { marginHorizontal: 16, marginTop: 10, marginBottom: 30, paddingVertical: 14, backgroundColor: '#fef2f2', borderRadius: theme.borderRadius.md, alignItems: 'center', borderWidth: 1, borderColor: '#fecaca' },
+  deleteAccountText: { color: '#dc2626', fontSize: theme.fontSize.sm, fontWeight: '600' },
 });
 
 

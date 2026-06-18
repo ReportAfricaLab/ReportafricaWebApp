@@ -1,7 +1,9 @@
-import { Controller, Post, Get, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, Query, UseGuards, Request, Headers } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IsString, IsOptional, IsNumber } from 'class-validator';
 import { BusinessService } from './business.service';
+import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 class RegisterBusinessDto {
   @IsString() name: string;
@@ -26,7 +28,10 @@ class SubscribeDto {
 
 @Controller('businesses')
 export class BusinessController {
-  constructor(private readonly service: BusinessService) {}
+  constructor(
+    private readonly service: BusinessService,
+    private readonly config: ConfigService,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Post('register')
@@ -59,5 +64,18 @@ export class BusinessController {
   @Get(':id')
   getById(@Param('id') id: string) {
     return this.service.getById(id);
+  }
+
+  @Post('webhook/paystack')
+  async paystackWebhook(@Body() body: any, @Headers('x-paystack-signature') signature: string) {
+    const secret = this.config.get('PAYSTACK_SECRET_KEY', '');
+    if (secret) {
+      const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(body)).digest('hex');
+      if (hash !== signature) return { status: 'invalid_signature' };
+    }
+    if (body.event === 'charge.success' && body.data?.metadata) {
+      await this.service.handleWebhook(body.data.reference, body.data.metadata);
+    }
+    return { status: 'ok' };
   }
 }

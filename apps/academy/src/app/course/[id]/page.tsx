@@ -30,13 +30,26 @@ export default function CourseDetailPage() {
   const lessons = course.lessons?.sort((a: any, b: any) => a.sortOrder - b.sortOrder) || [];
 
   const handlePurchase = async () => {
-    if (!user) { window.location.href = 'https://reportafrica-web.vercel.app/login'; return; }
-    // Simulate enrollment (in production, integrate Paystack)
-    const enrollments = JSON.parse(localStorage.getItem('academy_enrollments') || '[]');
-    enrollments.push(id);
-    localStorage.setItem('academy_enrollments', JSON.stringify(enrollments));
-    setEnrolled(true);
-    alert('Enrollment successful! You now have access to the course.');
+    if (!user) { window.location.href = 'https://reportafrica.africa/login'; return; }
+    const token = localStorage.getItem('academy_token');
+    try {
+      const res = await fetch(`${API_URL}/courses/${id}/enroll`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: user.email, country }),
+      });
+      const data = await res.json();
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else if (data.enrolled) {
+        setEnrolled(true);
+        alert('Enrollment successful! You now have access to the course.');
+      } else {
+        alert(data.message || 'Enrollment failed. Try again.');
+      }
+    } catch {
+      alert('Payment initialization failed. Please try again.');
+    }
   };
 
   return (

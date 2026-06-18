@@ -128,6 +128,7 @@ export default function Navbar() {
                         { href: '/referral', icon: '🎁', label: 'Referral' },
                         { href: 'https://academy.reportafrica.africa', icon: '🎓', label: 'Academy' },
                         { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+                        ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
                       ].map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setShowDropdown(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
@@ -210,6 +211,7 @@ export default function Navbar() {
                   { href: '/watchlist', icon: '📍', label: 'Watchlists' },
                   { href: '/referral', icon: '🎁', label: 'Referral' },
                   { href: 'https://academy.reportafrica.africa', icon: '🎓', label: 'Academy' },
+                  ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
                 ].map((item) => (
                   <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 py-2.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">

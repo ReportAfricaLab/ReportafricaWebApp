@@ -41,6 +41,15 @@ class RefreshDto {
   @IsString() refreshToken: string;
 }
 
+class ChangePasswordDto {
+  @IsString() currentPassword: string;
+  @IsString() @MinLength(8) newPassword: string;
+}
+
+class VerifyEmailDto {
+  @IsString() token: string;
+}
+
 @Controller('auth')
 @UseGuards(StrictThrottlerGuard)
 export class AuthController {
@@ -103,6 +112,26 @@ export class AuthController {
   @Throttle({ short: { ttl: 60000, limit: 5 } })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('change-password')
+  @Throttle({ short: { ttl: 60000, limit: 5 } })
+  changePassword(@Request() req: any, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
+  }
+
+  @Post('verify-email')
+  @Throttle({ short: { ttl: 60000, limit: 10 } })
+  verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.authService.verifyEmail(dto.token);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('resend-verification')
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
+  resendVerification(@Request() req: any) {
+    return this.authService.resendVerification(req.user.id);
   }
 
   private setRefreshCookie(res: Response, refreshToken: string) {

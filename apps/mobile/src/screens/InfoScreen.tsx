@@ -187,7 +187,7 @@ const PAGES: Record<string, { title: string; content: () => React.ReactNode }> =
     title: 'Contact Us',
     content: () => (
       <>
-        <Section title="Email">support@reportafrica.com</Section>
+        <Section title="Email">support@reportafrica.africa</Section>
         <Section title="Office">Lagos, Nigeria</Section>
         <Section title="Social Media">
           Twitter/X: @reportafrica{'\n'}Instagram: @reportafrica{'\n'}LinkedIn: /company/reportafrica
@@ -213,7 +213,7 @@ const PAGES: Record<string, { title: string; content: () => React.ReactNode }> =
             <Text style={styles.jobTitle}>{role}</Text>
           </View>
         ))}
-        <Text style={[styles.sectionBody, { marginTop: 16 }]}>Send your CV to careers@reportafrica.com</Text>
+        <Text style={[styles.sectionBody, { marginTop: 16 }]}>Send your CV to careers@reportafrica.africa</Text>
       </>
     ),
   },
@@ -227,7 +227,7 @@ const PAGES: Record<string, { title: string; content: () => React.ReactNode }> =
         <Section title="Key Facts">
           {`• 32+ African countries\n• 8 report categories\n• Founded 2024\n• HQ: Lagos, Nigeria\n• Platforms: Web, iOS, Android\n• 9+ languages`}
         </Section>
-        <Section title="Press Contact">press@reportafrica.com</Section>
+        <Section title="Press Contact">press@reportafrica.africa</Section>
       </>
     ),
   },
@@ -244,7 +244,7 @@ const PAGES: Record<string, { title: string; content: () => React.ReactNode }> =
         <Section title="NGOs & Civil Society">
           Leverage citizen reports for humanitarian response, election monitoring, and human rights documentation.
         </Section>
-        <Section title="Become a Partner">partners@reportafrica.com</Section>
+        <Section title="Become a Partner">partners@reportafrica.africa</Section>
       </>
     ),
   },

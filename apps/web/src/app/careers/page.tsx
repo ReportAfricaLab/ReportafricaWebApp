@@ -38,7 +38,7 @@ export default function CareersPage() {
                   <span>⏰ {job.type}</span>
                 </div>
               </div>
-              <a href="mailto:careers@reportafrica.com" className="px-4 py-2 text-xs font-semibold text-[#0F7B6C] border border-[#0F7B6C] rounded-lg hover:bg-[#0F7B6C]/5 shrink-0">
+              <a href="mailto:careers@reportafrica.africa" className="px-4 py-2 text-xs font-semibold text-[#0F7B6C] border border-[#0F7B6C] rounded-lg hover:bg-[#0F7B6C]/5 shrink-0">
                 Apply
               </a>
             </div>
@@ -47,7 +47,7 @@ export default function CareersPage() {
       </div>
 
       <div className="mt-10 text-center">
-        <p className="text-gray-600 text-sm">Don&apos;t see your role? Send us your CV at <a href="mailto:careers@reportafrica.com" className="text-[#0F7B6C] font-semibold">careers@reportafrica.com</a></p>
+        <p className="text-gray-600 text-sm">Don&apos;t see your role? Send us your CV at <a href="mailto:careers@reportafrica.africa" className="text-[#0F7B6C] font-semibold">careers@reportafrica.africa</a></p>
       </div>
     </div>
   );

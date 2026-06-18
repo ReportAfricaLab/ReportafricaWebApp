@@ -83,6 +83,9 @@ async function bootstrap() {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR DEFAULT 'free';
         ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_expires TIMESTAMP DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS is_certified BOOLEAN DEFAULT FALSE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token VARCHAR DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL;
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {
