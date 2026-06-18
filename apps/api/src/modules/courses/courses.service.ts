@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { CourseEntity, LessonEntity, EnrollmentEntity } from '../../database/entities';
-import axios from 'axios';
 
 @Injectable()
 export class CoursesService {
@@ -115,16 +114,20 @@ export class CoursesService {
     const reference = `academy_${courseId}_${userId}_${Date.now()}`;
 
     try {
-      const res = await axios.post('https://api.paystack.co/transaction/initialize', {
-        email,
-        amount: amount * 100,
-        currency,
-        reference,
-        callback_url: `https://academy.reportafrica.africa/course/${courseId}?enrolled=true`,
-        metadata: { userId, courseId, type: 'academy_enrollment' },
-      }, { headers: { Authorization: `Bearer ${this.paystackSecret}` } });
-
-      return { paymentUrl: res.data?.data?.authorization_url, reference };
+      const res = await fetch('https://api.paystack.co/transaction/initialize', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${this.paystackSecret}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          amount: amount * 100,
+          currency,
+          reference,
+          callback_url: `https://academy.reportafrica.africa/course/${courseId}?enrolled=true`,
+          metadata: { userId, courseId, type: 'academy_enrollment' },
+        }),
+      });
+      const data = await res.json();
+      return { paymentUrl: data?.data?.authorization_url, reference };
     } catch {
       throw new BadRequestException('Payment initialization failed');
     }
@@ -132,10 +135,11 @@ export class CoursesService {
 
   async verifyEnrollmentPayment(reference: string) {
     if (!this.paystackSecret) throw new BadRequestException('Payment not configured');
-    const res = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+    const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: { Authorization: `Bearer ${this.paystackSecret}` },
     });
-    if (res.data?.data?.status !== 'success') return { enrolled: false };
+    const data = await res.json();
+    if (data?.data?.status !== 'success') return { enrolled: false };
 
     const { userId, courseId } = res.data.data.metadata || {};
     if (!userId || !courseId) return { enrolled: false };

@@ -40,7 +40,7 @@ export class VoiceService {
 
   async transcribeAudio(audioUrl: string, language = 'en'): Promise<{ text: string; confidence: number; language: string }> {
     if (!this.transcribeClient) {
-      return { text: '', confidence: 0, language, error: 'Voice transcription service not configured' };
+      return { text: '', confidence: 0, language };
     }
 
     const languageCode = LANGUAGE_MAP[language] || 'en-US';
