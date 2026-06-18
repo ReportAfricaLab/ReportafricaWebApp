@@ -82,20 +82,32 @@ const PAGES: Record<string, { title: string; content: () => React.ReactNode }> =
     title: 'Privacy Policy',
     content: () => (
       <>
-        <Section title="Information We Collect">
-          Account info (email, username, country), reports you submit, location data (only when reporting), payment info (processed by Paystack), and usage analytics.
+        <Section title="Introduction">
+          ReportAfrica is owned, operated, and managed by TRADILINK AFRICA SOLUTION LIMITED, a company duly incorporated under the laws of the Federal Republic of Nigeria. This Privacy Policy explains how we collect, use, store, share, and protect personal data when you access or use reportafrica.africa, mobile applications, APIs and related services.
         </Section>
-        <Section title="How We Use It">
-          To provide the platform, verify reports, calculate trust scores, process payments, send alerts, and prevent fraud.
+        <Section title="Information We Collect">
+          Account info (name, username, email, phone, password, country, profile photo), content you provide (reports, photos, videos, comments, business listings, livestreams), location data (GPS with permission), device and technical data (IP, device type, OS, browser), payment and financial data (processed by secure third-party providers), and verification documents where required.
+        </Section>
+        <Section title="How We Use Your Data">
+          To provide and operate the platform, publish and distribute content, verify reports and reduce misinformation, rank trust and reputation scores, prevent fraud/spam/abuse, process payments and payouts, enable creator monetization, deliver local news and alerts, improve platform performance, and comply with legal obligations.
+        </Section>
+        <Section title="AI and Automated Systems">
+          ReportAfrica uses AI to detect spam and fake content, identify harmful reports, assist moderation teams, rank content relevance, and improve platform safety. Automated systems assist but do not replace human decision-making.
         </Section>
         <Section title="Anonymous Reporting">
-          When you report anonymously, your identity is hidden from other users. We support face blur and voice masking.
+          When you report anonymously, your identity is completely decoupled from the report. We support face blur, EXIF metadata stripping, and zero-knowledge architecture for anonymous submissions.
         </Section>
         <Section title="Data Sharing">
-          We do not sell your data. We share with payment processors and cloud providers as needed.
+          We do NOT sell personal data. We share with service providers (cloud, analytics, security), payment partners (for transactions), and legal authorities (when required by law).
+        </Section>
+        <Section title="Your Rights">
+          You may access, correct, delete your data, withdraw consent, object to processing, request portability, or lodge complaints with regulators. Requests can be submitted through our support channels.
+        </Section>
+        <Section title="Data Security">
+          We use encryption in transit, secure server infrastructure, password hashing, access controls, and monitoring systems. No system is 100% secure.
         </Section>
         <Section title="Contact">
-          privacy@reportafrica.com
+          TRADILINK AFRICA SOLUTION LIMITED{"\n"}Website: reportafrica.africa{"\n"}Email: privacy@reportafrica.africa{"\n"}Support: support@reportafrica.africa{"\n"}Head Office: Federal Republic of Nigeria
         </Section>
       </>
     ),
