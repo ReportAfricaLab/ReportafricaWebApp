@@ -11,7 +11,7 @@ import { theme } from '../theme';
 import { REPORT_CATEGORY_LABELS } from '../constants';
 import axios from 'axios';
 
-const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://34-242-14-140.nip.io/api/v1';
+const API_URL = __DEV__ ? 'http://10.162.41.17:3001/api/v1' : 'https://api.reportafrica.africa/api/v1';
 
 const SEVERITY_OPTIONS = ['low', 'medium', 'high', 'critical'] as const;
 
@@ -60,9 +60,9 @@ export default function CreateReportScreen() {
 
   const removeMedia = (index: number) => setMediaFiles((prev) => prev.filter((_, i) => i !== index));
 
-  const uploadMedia = async (): Promise<string[]> => {
+  const uploadMedia = async (): Promise<{ type: string; url: string }[]> => {
     const { token } = useAppStore.getState();
-    const urls: string[] = [];
+    const uploaded: { type: string; url: string }[] = [];
     for (const media of mediaFiles) {
       try {
         const fileType = media.type.startsWith('video') ? 'video' : 'image';
@@ -75,10 +75,10 @@ export default function CreateReportScreen() {
         media.s3Key = key || fileUrl.split('.com/')[1];
 
         // Use blurred URL if face blur was applied
-        urls.push(media.blurredUri || fileUrl);
+        uploaded.push({ type: media.type, url: media.blurredUri || fileUrl });
       } catch {}
     }
-    return urls;
+    return uploaded;
   };
 
   const handleBlurFaces = async (index: number) => {
@@ -170,7 +170,7 @@ export default function CreateReportScreen() {
         return;
       }
 
-      const mediaUrls = await uploadMedia();
+      const media = await uploadMedia();
 
       // Generate SHA-256 hash of primary media for evidence integrity
       let contentHash = '';
@@ -180,7 +180,7 @@ export default function CreateReportScreen() {
         contentHash = await digestStringAsync(CryptoDigestAlgorithm.SHA256, fileData);
       }
 
-      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, mediaUrls, contentHash });
+      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, media, contentHash });
       Alert.alert('Report Submitted', 'Your report has been submitted successfully.');
       setTitle(''); setDescription(''); setCategory(''); setMediaFiles([]);
     } catch (err) {
