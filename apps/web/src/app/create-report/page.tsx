@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import ImageCropper from '@/components/ImageCropper';
 
 // Strip EXIF metadata by redrawing image through Canvas
 async function stripExif(file: File): Promise<File> {
@@ -45,6 +46,7 @@ export default function CreateReportPage() {
   const [form, setForm] = useState({ title: '', description: '', category: '', severity: 'medium', isAnonymous: false });
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mediaFiles, setMediaFiles] = useState<{ file: File; preview: string; type: string; blurredUrl?: string; blurring?: boolean; s3Key?: string }[]>([]);
+  const [cropImage, setCropImage] = useState<{ src: string; originalFile: File } | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -137,18 +139,29 @@ export default function CreateReportPage() {
   const handleMediaAdd = async (files: FileList | null) => {
     if (!files) return;
     const incoming = Array.from(files).slice(0, 5 - mediaFiles.length);
-    const newFiles = await Promise.all(incoming.map(async (file) => {
-      const stripped = await stripExif(file);
-      return {
-        file: stripped,
-        preview: URL.createObjectURL(stripped),
-        type: file.type,
-        blurredUrl: undefined,
-        blurring: false,
-        s3Key: undefined,
-      };
-    }));
-    setMediaFiles((prev) => [...prev, ...newFiles]);
+    for (const file of incoming) {
+      if (file.type.startsWith('image/')) {
+        // Show cropper for images
+        const stripped = await stripExif(file);
+        const src = URL.createObjectURL(stripped);
+        setCropImage({ src, originalFile: stripped });
+        return; // Process one at a time
+      } else {
+        // Videos go directly
+        setMediaFiles((prev) => [...prev, { file, preview: URL.createObjectURL(file), type: file.type }]);
+      }
+    }
+  };
+
+  const handleCropComplete = (croppedFile: File) => {
+    if (cropImage) URL.revokeObjectURL(cropImage.src);
+    setMediaFiles((prev) => [...prev, { file: croppedFile, preview: URL.createObjectURL(croppedFile), type: 'image/jpeg' }]);
+    setCropImage(null);
+  };
+
+  const handleCropCancel = () => {
+    if (cropImage) URL.revokeObjectURL(cropImage.src);
+    setCropImage(null);
   };
 
   const removeMedia = (index: number) => {
@@ -329,6 +342,16 @@ export default function CreateReportPage() {
           {loading ? 'Submitting...' : 'Submit Report'}
         </button>
       </form>
+
+      {/* Image Cropper Modal */}
+      {cropImage && (
+        <ImageCropper
+          imageSrc={cropImage.src}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspect={16 / 9}
+        />
+      )}
     </div>
   );
 }

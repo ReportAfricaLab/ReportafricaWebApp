@@ -66,9 +66,9 @@ export default function ReportCard({ report }: { report: Report }) {
       {report.media && report.media.length > 0 && report.media[0]?.url && (
         <div className="mb-3 rounded-lg overflow-hidden">
           {report.media[0].type?.startsWith('video') ? (
-            <video src={report.media[0].url} className="w-full h-48 object-cover bg-gray-100" />
+            <video src={report.media[0].url} className="w-full aspect-video object-cover bg-gray-100" />
           ) : (
-            <img src={report.media[0].url} alt={report.title} className="w-full h-48 object-cover bg-gray-100" loading="lazy" />
+            <img src={report.media[0].url} alt={report.title} className="w-full aspect-video object-cover bg-gray-100" loading="lazy" />
           )}
           {report.media.length > 1 && (
             <div className="flex gap-1 mt-1">

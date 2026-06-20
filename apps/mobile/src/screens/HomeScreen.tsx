@@ -14,6 +14,7 @@ import { COUNTRY_CONFIG } from '../constants';
 interface Report {
   id: string;
   title: string;
+  aiHeadline?: string;
   description: string;
   category: string;
   severity: string;
@@ -21,6 +22,7 @@ interface Report {
   city?: string;
   upvotes: number;
   commentCount: number;
+  media?: { type: string; url: string }[];
   createdAt: string;
   author?: { displayName: string; trustLevel: string; isCertified?: boolean; subscriptionTier?: string };
 }
@@ -96,6 +98,9 @@ export default function HomeScreen() {
       </View>
       <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{item.aiHeadline || item.title}</Text>
       <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>{item.description}</Text>
+      {item.media && item.media.length > 0 && item.media[0]?.url && (
+        <Image source={{ uri: item.media[0].url }} style={styles.cardMedia} resizeMode="cover" />
+      )}
       <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
         <Text style={[styles.meta, { color: colors.textSecondary }]}>{item.author?.displayName || 'Anonymous'}{item.author?.isCertified ? ' 🎓' : ''}{item.author?.subscriptionTier === 'legend' ? ' 👑' : item.author?.subscriptionTier === 'elite' ? ' 💜' : item.author?.subscriptionTier === 'pro' ? ' 🔵' : ''}</Text>
         <Text style={[styles.meta, { color: colors.textSecondary }]}>↑ {item.upvotes} · 💬 {item.commentCount}</Text>
@@ -273,6 +278,7 @@ const styles = StyleSheet.create({
   category: { fontSize: theme.fontSize.xs, color: theme.colors.light.textSecondary, textTransform: 'capitalize' },
   title: { fontSize: theme.fontSize.md, fontWeight: '600', color: theme.colors.light.text, marginBottom: 4 },
   description: { fontSize: theme.fontSize.sm, color: theme.colors.light.textSecondary, lineHeight: 20 },
+  cardMedia: { width: '100%', height: 180, borderRadius: 8, marginTop: 10, backgroundColor: '#f3f4f6' },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.light.border },
   meta: { fontSize: theme.fontSize.xs, color: theme.colors.light.textSecondary },
   empty: { alignItems: 'center', paddingTop: 60 },
