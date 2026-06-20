@@ -64,9 +64,19 @@ export default function ReportCard({ report }: { report: Report }) {
 
       {/* Media */}
       {report.media && report.media.length > 0 && report.media[0]?.url && (
-        <div className="mb-3 rounded-lg overflow-hidden">
+        <div className="mb-3 rounded-lg overflow-hidden relative">
           {report.media[0].type?.startsWith('video') ? (
-            <video src={report.media[0].url} className="w-full aspect-video object-cover bg-gray-100" />
+            <video
+              src={report.media[0].url}
+              className="w-full aspect-video object-cover bg-gray-900"
+              controls
+              muted
+              playsInline
+              preload="metadata"
+              poster={`${report.media[0].url}#t=0.5`}
+              onMouseEnter={(e) => (e.target as HTMLVideoElement).play().catch(() => {})}
+              onMouseLeave={(e) => { (e.target as HTMLVideoElement).pause(); (e.target as HTMLVideoElement).currentTime = 0; }}
+            />
           ) : (
             <img src={report.media[0].url} alt={report.title} className="w-full aspect-video object-cover bg-gray-100" loading="lazy" />
           )}
