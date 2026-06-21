@@ -43,6 +43,7 @@ export default function HomeScreen() {
   const [pendingCount, setPendingCount] = useState(0);
   const [activeEmergencies, setActiveEmergencies] = useState<any[]>([]);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [contentFilter, setContentFilter] = useState('');
 
   const brandName = COUNTRY_CONFIG[viewingCountry]?.brandName || COUNTRY_CONFIG[viewingCountry]?.name || 'ReportAfrica';
 
@@ -196,8 +197,29 @@ export default function HomeScreen() {
           ))}
         </View>
       )}
+      {/* Content Type Filters */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.contentFilterRow} contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
+        {[
+          { key: '', label: 'All' },
+          { key: '_news', label: '📰 News' },
+          { key: '_events', label: '🎉 Events' },
+          { key: '_business', label: '🏢 Business' },
+        ].map((f) => (
+          <TouchableOpacity key={f.key} style={[styles.contentFilterChip, contentFilter === f.key && styles.contentFilterChipActive]} onPress={() => setContentFilter(f.key)}>
+            <Text style={[styles.contentFilterText, contentFilter === f.key && styles.contentFilterTextActive]}>{f.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
       <FlatList
-        data={reports}
+        data={contentFilter ? reports.filter((r) => {
+          const NEWS_CATS = ['traffic', 'police_security', 'government', 'emergency', 'health', 'corruption', 'utilities', 'missing_persons', 'environmental', 'gender_violence'];
+          const EVENT_CATS = ['election'];
+          const BIZ_CATS = ['market_consumer'];
+          if (contentFilter === '_news') return NEWS_CATS.includes(r.category);
+          if (contentFilter === '_events') return EVENT_CATS.includes(r.category) || !!r.eventType;
+          if (contentFilter === '_business') return BIZ_CATS.includes(r.category);
+          return true;
+        }) : reports}
         keyExtractor={(item, index) => item.id || `ad-${index}`}
         renderItem={({ item, index }) => {
           // Show sponsored ad placeholder every 5th position
@@ -299,6 +321,11 @@ const styles = StyleSheet.create({
   cardMediaVideo: { position: 'relative', marginTop: 10 },
   playOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 8 },
   playIcon: { fontSize: 36, color: '#fff' },
+  contentFilterRow: { paddingVertical: 8, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: theme.colors.light.border },
+  contentFilterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f3f4f6' },
+  contentFilterChipActive: { backgroundColor: '#111' },
+  contentFilterText: { fontSize: 12, fontWeight: '600', color: theme.colors.light.textSecondary },
+  contentFilterTextActive: { color: '#fff' },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: theme.colors.light.border },
   meta: { fontSize: theme.fontSize.xs, color: theme.colors.light.textSecondary },
   empty: { alignItems: 'center', paddingTop: 60 },
