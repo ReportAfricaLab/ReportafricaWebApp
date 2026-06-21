@@ -23,6 +23,8 @@ export default function CreateReportScreen() {
   const [category, setCategory] = useState('');
   const [severity, setSeverity] = useState<string>('medium');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isBreaking, setIsBreaking] = useState(false);
+  const [eventType, setEventType] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [mediaFiles, setMediaFiles] = useState<{ uri: string; type: string; fileName: string; blurredUri?: string; blurring?: boolean; s3Key?: string }[]>([]);
@@ -180,7 +182,7 @@ export default function CreateReportScreen() {
         contentHash = await digestStringAsync(CryptoDigestAlgorithm.SHA256, fileData);
       }
 
-      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, media, contentHash });
+      await reportsAPI.create({ title, description, category, severity, latitude, longitude, isAnonymous, isBreaking, eventType: eventType || undefined, media, contentHash });
       Alert.alert('Report Submitted', 'Your report has been submitted successfully.');
       setTitle(''); setDescription(''); setCategory(''); setMediaFiles([]);
     } catch (err) {
@@ -234,6 +236,32 @@ export default function CreateReportScreen() {
         <View style={[styles.checkbox, isAnonymous && styles.checkboxActive]} />
         <Text style={styles.anonymousText}>Report anonymously</Text>
       </TouchableOpacity>
+
+      {/* Breaking Report Toggle */}
+      <TouchableOpacity style={styles.anonymousRow} onPress={() => setIsBreaking(!isBreaking)}>
+        <View style={[styles.checkbox, isBreaking && { backgroundColor: '#dc2626', borderColor: '#dc2626' }]} />
+        <Text style={styles.anonymousText}>🚨 Mark as Breaking News</Text>
+      </TouchableOpacity>
+
+      {/* Event Type */}
+      <Text style={styles.label}>Event Type (optional)</Text>
+      <View style={styles.categoryGrid}>
+        {[
+          { key: '', label: 'None' },
+          { key: 'protest', label: '✊ Protest' },
+          { key: 'festival', label: '🎉 Festival' },
+          { key: 'community_meeting', label: '🤝 Meeting' },
+          { key: 'funeral', label: '😢 Funeral' },
+          { key: 'wedding', label: '💍 Wedding' },
+          { key: 'religious', label: '🙏 Religious' },
+          { key: 'sports', label: '⚽ Sports' },
+          { key: 'other', label: '📌 Other' },
+        ].map((evt) => (
+          <TouchableOpacity key={evt.key} style={[styles.categoryChip, eventType === evt.key && { backgroundColor: '#7c3aed', borderColor: '#7c3aed' }]} onPress={() => setEventType(evt.key)}>
+            <Text style={[styles.categoryChipText, eventType === evt.key && { color: '#fff' }]}>{evt.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Media Capture */}
       <Text style={styles.label}>{t('report.photos', 'Photos / Videos')}</Text>

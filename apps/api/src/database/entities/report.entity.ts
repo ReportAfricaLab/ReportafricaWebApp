@@ -69,6 +69,12 @@ export class ReportEntity {
   @Column({ name: 'is_live', default: false })
   isLive: boolean;
 
+  @Column({ name: 'is_breaking', default: false })
+  isBreaking: boolean;
+
+  @Column({ name: 'event_type', nullable: true })
+  eventType: string;
+
   @Column({ type: 'jsonb', default: '[]' })
   media: { type: string; url: string; thumbnailUrl?: string; duration?: number }[];
 

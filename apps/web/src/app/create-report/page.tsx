@@ -43,7 +43,7 @@ const CATEGORIES = [
 export default function CreateReportPage() {
   const router = useRouter();
   const { token, isAuthenticated } = useAuth();
-  const [form, setForm] = useState({ title: '', description: '', category: '', severity: 'medium', isAnonymous: false });
+  const [form, setForm] = useState({ title: '', description: '', category: '', severity: 'medium', isAnonymous: false, isBreaking: false, eventType: '' });
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [mediaFiles, setMediaFiles] = useState<{ file: File; preview: string; type: string; blurredUrl?: string; blurring?: boolean; s3Key?: string }[]>([]);
   const [cropImage, setCropImage] = useState<{ src: string; originalFile: File } | null>(null);
@@ -336,6 +336,39 @@ export default function CreateReportPage() {
             className="w-4 h-4 rounded border-gray-300 text-[#0F7B6C] focus:ring-[#0F7B6C]" />
           <span className="text-sm text-gray-700">Report anonymously</span>
         </label>
+
+        {/* Breaking Report */}
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" checked={form.isBreaking} onChange={(e) => update('isBreaking', e.target.checked)}
+            className="w-4 h-4 rounded border-red-300 text-red-600 focus:ring-red-500" />
+          <span className="text-sm text-gray-700">🚨 Mark as Breaking News</span>
+          <span className="text-xs text-gray-400">(boosts visibility for 6 hours)</span>
+        </label>
+
+        {/* Event Type (show when category could be an event) */}
+        {['emergency', 'environmental', 'government', 'election'].includes(form.category) || form.category === '' ? null : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Event Type (optional)</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { key: '', label: 'None' },
+                { key: 'protest', label: '✊ Protest' },
+                { key: 'festival', label: '🎉 Festival' },
+                { key: 'community_meeting', label: '🤝 Meeting' },
+                { key: 'funeral', label: '😢 Funeral' },
+                { key: 'wedding', label: '💍 Wedding' },
+                { key: 'religious', label: '🙏 Religious' },
+                { key: 'sports', label: '⚽ Sports' },
+                { key: 'other', label: '📌 Other' },
+              ].map((evt) => (
+                <button key={evt.key} type="button" onClick={() => update('eventType', evt.key)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition ${form.eventType === evt.key ? 'bg-purple-600 text-white border-purple-600' : 'border-gray-200 text-gray-600 hover:border-purple-400'}`}>
+                  {evt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button type="submit" disabled={loading}
           className="w-full py-3 bg-[#0F7B6C] text-white font-semibold rounded-lg hover:bg-[#0B6E4F] transition disabled:opacity-50">

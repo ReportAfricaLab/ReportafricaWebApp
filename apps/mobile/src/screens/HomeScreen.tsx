@@ -23,6 +23,8 @@ interface Report {
   upvotes: number;
   commentCount: number;
   media?: { type: string; url: string }[];
+  isBreaking?: boolean;
+  eventType?: string;
   createdAt: string;
   author?: { displayName: string; trustLevel: string; isCertified?: boolean; subscriptionTier?: string };
 }
@@ -91,10 +93,18 @@ export default function HomeScreen() {
   const renderReport = ({ item }: { item: Report }) => (
     <TouchableOpacity style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={() => navigation.navigate('ReportDetail', { id: item.id })}>
       <View style={styles.cardHeader}>
+        {item.isBreaking && (
+          <View style={[styles.severityBadge, { backgroundColor: '#dc2626' }]}>
+            <Text style={styles.severityText}>🚨 BREAKING</Text>
+          </View>
+        )}
         <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(item.severity) }]}>
           <Text style={styles.severityText}>{item.severity.toUpperCase()}</Text>
         </View>
         <Text style={[styles.category, { color: colors.textSecondary }]}>{item.category.replace('_', ' ')}</Text>
+        {item.eventType && (
+          <Text style={{ fontSize: 10, color: '#7c3aed', backgroundColor: '#f5f3ff', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' }}>{item.eventType.replace('_', ' ')}</Text>
+        )}
       </View>
       <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>{item.aiHeadline || item.title}</Text>
       <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={3}>{item.description}</Text>

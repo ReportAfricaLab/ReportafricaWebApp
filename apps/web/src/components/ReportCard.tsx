@@ -17,6 +17,8 @@ interface Report {
   commentCount: number;
   media?: { type: string; url: string }[];
   contentHash?: string;
+  isBreaking?: boolean;
+  eventType?: string;
   createdAt: string;
   author?: { displayName: string; username: string; trustLevel: string; isCertified?: boolean; subscriptionTier?: string };
 }
@@ -52,10 +54,16 @@ export default function ReportCard({ report }: { report: Report }) {
   return (
     <Link href={`/report?id=${report.id}`} className="block bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition">
       <div className="flex items-center gap-2 mb-3">
+        {report.isBreaking && (
+          <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-red-600 text-white animate-pulse">🚨 BREAKING</span>
+        )}
         <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${SEVERITY_COLORS[report.severity] || SEVERITY_COLORS.low}`}>
           {report.severity.toUpperCase()}
         </span>
         <span className="text-xs text-gray-500">{CATEGORY_LABELS[report.category] || report.category}</span>
+        {report.eventType && (
+          <span className="text-xs px-2 py-0.5 rounded bg-purple-50 text-purple-700">{report.eventType.replace('_', ' ')}</span>
+        )}
         <span className="text-xs text-gray-400 ml-auto">{timeAgo(report.createdAt)}</span>
       </div>
 

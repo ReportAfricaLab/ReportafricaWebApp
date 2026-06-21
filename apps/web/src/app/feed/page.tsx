@@ -21,13 +21,23 @@ const COUNTRIES = [
 ];
 
 const CATEGORIES = [
-  { key: '', label: 'All' }, { key: 'traffic', label: '🚗 Traffic' },
+  { key: '', label: 'All' },
+  { key: '_news', label: '📰 News' },
+  { key: '_events', label: '🎉 Events' },
+  { key: '_business', label: '🏢 Business' },
+  { key: 'traffic', label: '🚗 Traffic' },
   { key: 'police_security', label: '🚨 Security' }, { key: 'government', label: '🏛️ Government' },
   { key: 'election', label: '🗳️ Election' }, { key: 'emergency', label: '🚨 Emergency' },
   { key: 'environmental', label: '🌍 Environment' }, { key: 'gender_violence', label: '⚠️ GBV' },
   { key: 'health', label: '🏥 Health' }, { key: 'corruption', label: '💸 Corruption' },
   { key: 'utilities', label: '⚡ Utilities' }, { key: 'missing_persons', label: '🔍 Missing' },
 ];
+
+const FILTER_GROUPS: Record<string, string[]> = {
+  '_news': ['traffic', 'police_security', 'government', 'emergency', 'health', 'corruption', 'utilities', 'missing_persons', 'environmental', 'gender_violence'],
+  '_events': ['election'],
+  '_business': ['market_consumer'],
+};
 
 const NAV_LINKS = [
   { href: '/feed', icon: '📰', label: 'Feed' },
@@ -88,12 +98,25 @@ export default function FeedPage() {
 
   useEffect(() => {
     setLoading(true);
-    const fetchReports = category
-      ? api.reports.byCategory(country, category)
-      : api.reports.feed(country, 1, location?.lat, location?.lng);
+    let fetchReports;
+    if (category && category.startsWith('_')) {
+      // Group filter — fetch all and filter client-side
+      fetchReports = api.reports.feed(country, 1, location?.lat, location?.lng);
+    } else if (category) {
+      fetchReports = api.reports.byCategory(country, category);
+    } else {
+      fetchReports = api.reports.feed(country, 1, location?.lat, location?.lng);
+    }
 
     fetchReports
-      .then((res: any) => setReports(Array.isArray(res) ? res : res.data || []))
+      .then((res: any) => {
+        let data = Array.isArray(res) ? res : res.data || [];
+        // Apply group filter
+        if (category && FILTER_GROUPS[category]) {
+          data = data.filter((r: any) => FILTER_GROUPS[category].includes(r.category));
+        }
+        setReports(data);
+      })
       .catch(() => setReports([]))
       .finally(() => setLoading(false));
   }, [country, category, location]);

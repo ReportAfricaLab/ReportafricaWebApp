@@ -86,6 +86,8 @@ async function bootstrap() {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS is_email_verified BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token VARCHAR DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP DEFAULT NULL;
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS is_breaking BOOLEAN DEFAULT FALSE;
+        ALTER TABLE reports ADD COLUMN IF NOT EXISTS event_type VARCHAR DEFAULT NULL;
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {

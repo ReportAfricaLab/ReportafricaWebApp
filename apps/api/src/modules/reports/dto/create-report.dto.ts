@@ -61,6 +61,15 @@ export class CreateReportDto {
   @IsOptional()
   isLive?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isBreaking?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @IsIn(['funeral', 'wedding', 'protest', 'festival', 'community_meeting', 'religious', 'sports', 'other'])
+  eventType?: string;
+
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })

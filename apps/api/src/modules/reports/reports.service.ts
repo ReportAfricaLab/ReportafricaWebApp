@@ -169,7 +169,8 @@ export class ReportsService {
         WHEN 'high' THEN 20
         WHEN 'medium' THEN 5
         ELSE 0
-      END) -
+      END) +
+      (CASE WHEN r.is_breaking = true AND r.created_at > NOW() - INTERVAL '6 hours' THEN 50 ELSE 0 END) -
       (EXTRACT(EPOCH FROM (NOW() - r.created_at)) / 3600 * 0.5)
     `;
 
