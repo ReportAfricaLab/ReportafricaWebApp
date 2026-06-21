@@ -1,33 +1,16 @@
 # Pending Infrastructure Tasks
 
-## Step 7: Cloudflare Proxy (BLOCKED — needs own domain)
+## Step 7: Cloudflare Proxy ✅ COMPLETED
 
-**Status:** Waiting for `reportafrica.com` domain purchase
-**When:** Once domain is purchased and DNS is controlled by us
-
-**Setup steps:**
-1. Sign up at cloudflare.com (free tier)
-2. Add domain → point nameservers to Cloudflare
-3. Enable proxy (orange cloud) on API subdomain
-4. Enable "Under Attack Mode" API toggle from admin dashboard
-5. Configure WAF rules for API endpoints
-
-**Code needed:**
-- Admin endpoint: `PATCH /api/v1/admin/cloudflare/attack-mode` → calls Cloudflare API
-- Env vars: `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`
-- Install `node-fetch` or use built-in fetch to call Cloudflare API
-
-**Current protection (without Cloudflare):**
-- Nginx rate limiting
-- NestJS ThrottlerModule (per-IP rate limits)
-- AWS Security Groups (port-level)
+**Status:** DONE — `reportafrica.africa` on Cloudflare Free plan
+- Domain active on Cloudflare ✅
+- SSL/TLS Full (strict) ✅
+- DDoS protection active ✅
+- Bot fight mode enabled ✅
+- Admin attack-mode toggle: `PATCH /api/v1/health/cloudflare/attack-mode` ✅
+- Env vars: CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN configured ✅
 
 ---
-
-## Other notes:
-- Current API URL: https://34-242-14-140.nip.io/api/v1
-- nip.io domains can't use Cloudflare (don't own DNS)
-- Once we have our own domain, also set up: SSL via Cloudflare, CDN caching for static assets
 
 ## Step 9: Backup Hardening (PARTIALLY BLOCKED)
 
@@ -36,6 +19,41 @@
 **AMI backup:** Created 2026-06-12 (ami-0066c0976f0f4017f) ✅
 
 **When budget allows:** Upgrade RDS to 7-day retention ($0 if still under 20GB backup, but requires paid account plan)
+
+---
+
+## Build Later — Product Features (Need users/traction first)
+
+### Campus Journalism Network
+- Campus-specific communities (mini-networks per university)
+- Student reporter verification via school email or manual approval
+- Campus-specific feeds and leaderboards
+- **When:** After proving model works in 2-3 cities, demand from 3+ universities
+
+### Calendar-Based Event Discovery
+- Calendar view for upcoming events (protests, festivals, meetings, etc.)
+- Date-based browsing and reminders
+- **When:** After 50+ events per week per country
+
+### Editorial Approval Queue (Human Editors)
+- Human editor review workflow before publishing
+- Editor role with dashboard
+- **When:** When revenue supports hiring editors
+
+### Paid Boosted Posts for Businesses
+- Businesses pay to boost announcements to wider audience
+- Geo-targeted promotion with budget controls
+- **When:** After 50+ businesses registered on platform
+
+### Creator/Reporter Rewards (Token System)
+- TVcoin-like reward token for accurate reporting
+- Earn tokens for verified reports, redeem for cash/airtime
+- **When:** After sustainable revenue model proven. Tips + licensing already reward reporters.
+
+### Report Drafts (Save as Draft)
+- Allow reporters to save incomplete reports as drafts
+- Resume editing later before submitting
+- **When:** When reporters specifically request it. Current fast-submit flow works.
 
 ---
 
