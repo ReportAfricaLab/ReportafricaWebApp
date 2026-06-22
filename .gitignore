@@ -29,3 +29,9 @@ infra/terraform/*.tfstate*
 infra/scripts/*-env*.json
 infra/scripts/add-sentry.json
 infra/scripts/create-env-file.json
+
+# SSM deploy scripts (contain secrets - NEVER commit)
+ssm-cmd.json
+ssm-deploy.json
+*.secrets.json
+*-secrets.*
