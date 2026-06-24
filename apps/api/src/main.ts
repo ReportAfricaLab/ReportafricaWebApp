@@ -132,6 +132,33 @@ async function bootstrap() {
         ALTER TABLE lessons ADD COLUMN IF NOT EXISTS type VARCHAR DEFAULT 'video';
         ALTER TABLE lessons ADD COLUMN IF NOT EXISTS content TEXT DEFAULT NULL;
         ALTER TABLE lessons ADD COLUMN IF NOT EXISTS pdf_url VARCHAR DEFAULT NULL;
+        CREATE TABLE IF NOT EXISTS quizzes (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+          title VARCHAR DEFAULT 'Quiz',
+          passing_score INT DEFAULT 70,
+          max_attempts INT DEFAULT 3,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE TABLE IF NOT EXISTS quiz_questions (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          quiz_id UUID REFERENCES quizzes(id) ON DELETE CASCADE,
+          question_text TEXT NOT NULL,
+          options JSONB DEFAULT '[]',
+          correct_option_index INT NOT NULL,
+          sort_order INT DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS quiz_attempts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id),
+          quiz_id UUID REFERENCES quizzes(id) ON DELETE CASCADE,
+          score INT NOT NULL,
+          passed BOOLEAN DEFAULT FALSE,
+          answers JSONB DEFAULT '[]',
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user ON quiz_attempts(user_id);
+        CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz ON quiz_attempts(quiz_id);
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {
