@@ -41,6 +41,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { BusinessModule } from './modules/business/business.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { CoursesModule } from './modules/courses/courses.module';
+import { QuizModule } from './modules/quiz/quiz.module';
 
 @Module({
   imports: [
@@ -128,6 +129,7 @@ import { CoursesModule } from './modules/courses/courses.module';
     BusinessModule,
     SubscriptionModule,
     CoursesModule,
+    QuizModule,
   ],
 })
 export class AppModule {}
