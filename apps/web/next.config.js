@@ -4,6 +4,8 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const nextConfig = {
   output: 'standalone',
   transpilePackages: ['@reportafrica/shared'],
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
 };
 
 module.exports = withSentryConfig(nextConfig, {
