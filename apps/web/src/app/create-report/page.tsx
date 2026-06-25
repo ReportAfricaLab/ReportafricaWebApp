@@ -137,7 +137,7 @@ export default function CreateReportPage() {
       }
     };
 
-    recognition.onerror = () => { setRecording(false); setError('Voice recognition failed. Try again.'); };
+    recognition.onerror = (e: any) => { setRecording(false); setError(e.error === 'not-allowed' ? 'Microphone permission denied. Allow mic access in browser settings.' : 'Voice recognition failed. Make sure you\'re using Chrome/Edge and have mic access.'); };
     recognition.onend = () => { setRecording(false); };
 
     recognition.start();

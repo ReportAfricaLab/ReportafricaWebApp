@@ -67,7 +67,7 @@ export class CreateReportDto {
 
   @IsString()
   @IsOptional()
-  @IsIn(['funeral', 'wedding', 'protest', 'festival', 'community_meeting', 'religious', 'sports', 'other'])
+  @IsIn(['', 'funeral', 'wedding', 'protest', 'festival', 'community_meeting', 'religious', 'sports', 'other'])
   eventType?: string;
 
   @IsArray()
