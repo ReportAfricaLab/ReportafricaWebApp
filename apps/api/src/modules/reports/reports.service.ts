@@ -71,7 +71,7 @@ export class ReportsService {
       aiFlags: modResult.flags?.length > 0 ? modResult.flags.join(',') : undefined,
     } as any);
 
-    const saved = await this.reportRepo.save(report);
+    const saved = await this.reportRepo.save(report) as any;
 
     // Only link activity to user for non-anonymous reports
     if (!isAnon) {
