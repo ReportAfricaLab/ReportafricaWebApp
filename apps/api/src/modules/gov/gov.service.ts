@@ -29,9 +29,30 @@ export class GovService {
     if (!user) throw new NotFoundException('User not found');
     if (user.role === 'gov_agency') throw new BadRequestException('Already registered as agency');
 
-    // Set role to pending (admin approves)
     await this.userRepo.update(userId, { role: 'gov_pending' });
     return { registered: true, status: 'pending_approval', message: 'Your agency registration is pending admin approval.' };
+  }
+
+  async getGovMe(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const isGov = ['gov_agency', 'super_admin', 'admin'].includes(user.role);
+    const isPending = user.role === 'gov_pending';
+    const trialActive = user.govTrialEnd ? new Date(user.govTrialEnd) > new Date() : false;
+    const trialDaysLeft = user.govTrialEnd ? Math.max(0, Math.ceil((new Date(user.govTrialEnd).getTime() - Date.now()) / 86400000)) : 0;
+
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.role,
+      isGov,
+      isPending,
+      trialActive,
+      trialDaysLeft,
+      jurisdiction: { country: user.govJurisdictionCountry, state: user.govJurisdictionState },
+    };
   }
 
   async getReportDetail(id: string) {
@@ -82,9 +103,17 @@ export class GovService {
     return this.userRepo.find({ where: { role: 'gov_pending' as any }, select: ['id', 'email', 'username', 'displayName', 'createdAt'] });
   }
 
-  async approveAgency(userId: string) {
-    await this.userRepo.update(userId, { role: 'gov_agency' });
-    return { approved: true };
+  async approveAgency(userId: string, country?: string, state?: string) {
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 30);
+    await this.userRepo.update(userId, {
+      role: 'gov_agency',
+      govTrialStart: new Date(),
+      govTrialEnd: trialEnd,
+      govJurisdictionCountry: country || 'NG',
+      govJurisdictionState: state || null,
+    } as any);
+    return { approved: true, trialEnd };
   }
 
   async rejectAgency(userId: string) {

@@ -31,6 +31,7 @@ export const govAPI = {
   mapData: (country: string, state?: string) => govFetch(`/reports/feed?country=${country}${state ? `&state=${state}` : ''}&page=1`),
 
   // Dedicated gov endpoints
+  getMe: () => govFetch('/gov/me'),
   reportDetail: (id: string) => govFetch(`/gov/reports/${id}`),
   elections: (country: string) => govFetch(`/gov/elections?country=${country}`),
   sosLive: (country: string) => govFetch(`/gov/sos/live?country=${country}`),

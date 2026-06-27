@@ -25,6 +25,12 @@ export class GovController {
     return { saved: true, userId: req.user.id };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  getMe(@Request() req: any) {
+    return this.service.getGovMe(req.user.id);
+  }
+
   @Get('reports/:id')
   getReportDetail(@Param('id') id: string) {
     return this.service.getReportDetail(id);
@@ -62,8 +68,8 @@ export class GovController {
   }
 
   @Patch('agencies/:id/approve')
-  approveAgency(@Param('id') id: string) {
-    return this.service.approveAgency(id);
+  approveAgency(@Param('id') id: string, @Body() body: { country?: string; state?: string }) {
+    return this.service.approveAgency(id, body?.country, body?.state);
   }
 
   @Patch('agencies/:id/reject')

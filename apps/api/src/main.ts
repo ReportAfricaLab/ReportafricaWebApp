@@ -229,6 +229,10 @@ async function bootstrap() {
         CREATE INDEX IF NOT EXISTS idx_trips_shared ON trips(shared_with_user_id);
         CREATE INDEX IF NOT EXISTS idx_trips_active ON trips(is_active);
         ALTER TABLE users ADD COLUMN IF NOT EXISTS account_status VARCHAR DEFAULT 'active';
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_jurisdiction_country VARCHAR DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_jurisdiction_state VARCHAR DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_trial_start TIMESTAMP DEFAULT NULL;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_trial_end TIMESTAMP DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_headline VARCHAR DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_moderation_score INT DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_flags VARCHAR DEFAULT NULL;

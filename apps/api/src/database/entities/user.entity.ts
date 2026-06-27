@@ -103,6 +103,18 @@ export class UserEntity {
   @Column({ name: 'account_status', default: 'active' })
   accountStatus: string; // active, suspended, banned
 
+  @Column({ name: 'gov_jurisdiction_country', nullable: true })
+  govJurisdictionCountry: string;
+
+  @Column({ name: 'gov_jurisdiction_state', nullable: true })
+  govJurisdictionState: string;
+
+  @Column({ name: 'gov_trial_start', nullable: true })
+  govTrialStart: Date;
+
+  @Column({ name: 'gov_trial_end', nullable: true })
+  govTrialEnd: Date;
+
   @Column({ name: 'is_email_verified', default: false })
   isEmailVerified: boolean;
 
