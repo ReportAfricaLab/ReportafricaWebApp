@@ -25,6 +25,10 @@ export default function ReportDetailPage() {
   return (
     <div className="max-w-3xl">
       <a href="/incidents" className="text-sm text-blue-400 hover:underline mb-4 block">← Back to Incidents</a>
+      <div className="flex items-center justify-between mb-4">
+        <span></span>
+        <button onClick={() => window.print()} className="px-3 py-1.5 bg-gray-700 text-gray-200 text-xs rounded hover:bg-gray-600">🖨️ Print Report</button>
+      </div>
       <div className="bg-[#1E293B] rounded-xl p-6 border border-gray-700">
         <div className="flex items-center gap-2 mb-4">
           <span className={`px-2 py-0.5 text-[10px] font-bold rounded text-white ${report.severity === 'critical' ? 'bg-red-600' : report.severity === 'high' ? 'bg-orange-600' : 'bg-blue-600'}`}>{report.severity?.toUpperCase()}</span>

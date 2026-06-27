@@ -5,12 +5,12 @@ import { useJurisdiction } from '@/lib/useJurisdiction';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
 
 export default function LivestreamsPage() {
-  const { country } = useJurisdiction();
+  const { country, dateFrom } = useJurisdiction();
   const [streams, setStreams] = useState<any[]>([]);
 
   useEffect(() => {
     fetch(`${API_URL}/livestream/live?country=${country}`).then(r => r.json()).then(d => setStreams(Array.isArray(d) ? d : [])).catch(() => {});
-  }, [country]);
+  }, [country, dateFrom]);
 
   return (
     <div>

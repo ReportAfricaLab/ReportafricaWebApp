@@ -4,11 +4,11 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function GovElectionsPage() {
-  const { country } = useJurisdiction();
+  const { country, dateFrom } = useJurisdiction();
   const [data, setData] = useState<any>(null);
   const [tab, setTab] = useState<'feed' | 'incidents' | 'results'>('feed');
 
-  useEffect(() => { govAPI.elections(country).then(setData).catch(() => {}); }, [country]);
+  useEffect(() => { govAPI.elections(country).then(setData).catch(() => {}); }, [country, dateFrom]);
 
   const feed = data?.feed || [];
   const incidents = data?.incidents || [];

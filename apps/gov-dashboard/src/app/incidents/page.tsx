@@ -4,10 +4,10 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function IncidentsPage() {
-  const { country, state } = useJurisdiction();
+  const { country, state, dateFrom } = useJurisdiction();
   const [data, setData] = useState<any[]>([]);
 
-  useEffect(() => { govAPI.mapData(country, state || undefined).then((d: any) => setData(d.data || [])).catch(() => {}); }, [country, state]);
+  useEffect(() => { govAPI.mapData(country, state || undefined).then((d: any) => setData(d.data || [])).catch(() => {}); }, [country, state, dateFrom]);
 
   const incidents = data.filter((r: any) => ['critical', 'high'].includes(r.severity));
 

@@ -4,14 +4,14 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function GovDashboard() {
-  const { country, state } = useJurisdiction();
+  const { country, state, dateFrom } = useJurisdiction();
   const [data, setData] = useState<any>(null);
   const [mapReports, setMapReports] = useState<any[]>([]);
 
   useEffect(() => {
     govAPI.dashboard(country, state || undefined).then(setData).catch(() => {});
     govAPI.mapData(country, state || undefined).then((d: any) => setMapReports(d.data || [])).catch(() => {});
-  }, [country, state]);
+  }, [country, state, dateFrom]);
 
   return (
     <div>
@@ -60,6 +60,21 @@ export default function GovDashboard() {
               ))}
             </div>
           ) : (<p className="text-gray-500 text-sm">No recent reports</p>)}
+        </div>
+      </div>
+
+      <div className="bg-[#1E293B] rounded-xl p-6 border border-gray-700 mt-6">
+        <h2 className="font-semibold mb-4">📊 Reports by State</h2>
+        <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+          {Object.entries(
+            mapReports.reduce((acc: Record<string, number>, r: any) => { const s = r.state || 'Unknown'; acc[s] = (acc[s] || 0) + 1; return acc; }, {})
+          ).sort((a, b) => b[1] - a[1]).map(([st, count]) => (
+            <div key={st} className="flex justify-between items-center p-2 bg-gray-800 rounded">
+              <span className="text-xs text-gray-300">{st}</span>
+              <span className="text-xs font-bold text-blue-400">{count}</span>
+            </div>
+          ))}
+          {mapReports.length === 0 && <p className="text-gray-500 text-sm col-span-2 text-center py-4">No data</p>}
         </div>
       </div>
 

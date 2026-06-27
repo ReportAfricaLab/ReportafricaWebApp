@@ -4,10 +4,10 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function TrendsPage() {
-  const { country } = useJurisdiction();
+  const { country, dateFrom } = useJurisdiction();
   const [data, setData] = useState<any>(null);
 
-  useEffect(() => { govAPI.trending(country).then(setData).catch(() => {}); }, [country]);
+  useEffect(() => { govAPI.trending(country).then(setData).catch(() => {}); }, [country, dateFrom]);
 
   return (
     <div>

@@ -4,10 +4,10 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function HotspotsPage() {
-  const { country } = useJurisdiction();
+  const { country, dateFrom } = useJurisdiction();
   const [data, setData] = useState<any[]>([]);
 
-  useEffect(() => { govAPI.hotspots(country).then((d: any) => setData(Array.isArray(d) ? d : d.data || [])).catch(() => {}); }, [country]);
+  useEffect(() => { govAPI.hotspots(country).then((d: any) => setData(Array.isArray(d) ? d : d.data || [])).catch(() => {}); }, [country, dateFrom]);
 
   return (
     <div>

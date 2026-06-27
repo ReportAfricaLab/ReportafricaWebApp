@@ -4,7 +4,7 @@ import { govAPI } from '@/lib/api';
 import { useJurisdiction } from '@/lib/useJurisdiction';
 
 export default function SOSPage() {
-  const { country } = useJurisdiction();
+  const { country, dateFrom } = useJurisdiction();
   const [alerts, setAlerts] = useState<any[]>([]);
 
   const load = () => {

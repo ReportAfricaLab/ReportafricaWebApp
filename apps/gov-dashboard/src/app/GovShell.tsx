@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { STATES } from '@/lib/states';
 
 const NAV = [
   { label: 'Overview', href: '/', icon: '📊' },
@@ -58,13 +59,36 @@ export default function GovShell({ children }: { children: React.ReactNode }) {
       <aside className="w-60 h-screen bg-[#0B1120] border-r border-gray-800 p-5 fixed overflow-y-auto">
         <h1 className="text-lg font-bold text-blue-400 mb-2">🏛️ Gov Intel</h1>
         {govUser?.jurisdiction?.country && (
-          <p className="text-[10px] text-gray-500 mb-4">📍 {govUser.jurisdiction.state || ''} {govUser.jurisdiction.country}</p>
+          <p className="text-[10px] text-gray-500 mb-2">📍 {govUser.jurisdiction.state || 'All States'} {govUser.jurisdiction.country}</p>
+        )}
+        {/* State selector - only if not locked to a state */}
+        {govUser?.jurisdiction?.country && !govUser?.jurisdiction?.state && (
+          <select
+            onChange={(e) => { (window as any).__govJurisdiction = { ...jurisdiction, state: e.target.value }; window.dispatchEvent(new Event('jurisdictionChange')); }}
+            className="w-full mb-3 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-[11px] text-gray-300 outline-none">
+            <option value="">All States</option>
+            {(STATES[govUser.jurisdiction.country] || []).map((s: string) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         )}
         {govUser?.trialActive && govUser?.trialDaysLeft != null && (
-          <div className="mb-4 px-2 py-1.5 bg-amber-900/30 border border-amber-700/30 rounded text-[10px] text-amber-400">
+          <div className="mb-3 px-2 py-1.5 bg-amber-900/30 border border-amber-700/30 rounded text-[10px] text-amber-400">
             🕐 Trial: {govUser.trialDaysLeft} days left
           </div>
         )}
+        {/* Date range filter */}
+        <div className="mb-4">
+          <p className="text-[10px] text-gray-500 mb-1">Time Range</p>
+          <select onChange={(e) => { (window as any).__govDateRange = e.target.value; window.dispatchEvent(new Event('dateRangeChange')); }}
+            className="w-full px-2 py-1.5 bg-gray-800 border border-gray-700 rounded text-[11px] text-gray-300 outline-none">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="all">All time</option>
+          </select>
+        </div>
+        <p className="text-[9px] text-gray-600 mb-4">🔄 Last updated: {new Date().toLocaleTimeString()}</p>
         <nav className="space-y-0.5 text-sm">
           {NAV.map((item) => (
             <a key={item.href} href={item.href}
