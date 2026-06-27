@@ -61,13 +61,6 @@ export class GovService {
     return report;
   }
 
-  async getElections(country: string) {
-    const feed = await this.electionRepo.find({ where: { country }, order: { createdAt: 'DESC' }, take: 50, relations: ['user'] });
-    const incidents = feed.filter(r => ['violence', 'vote_buying', 'intimidation', 'ballot_snatching'].includes(r.type));
-    const results = feed.filter(r => r.type === 'result_upload');
-    return { feed, incidents, results, total: feed.length };
-  }
-
   async exportCSV(country: string, category?: string, severity?: string, state?: string, dateFrom?: string, userId?: string) {
     // Jurisdiction lock
     const user = userId ? await this.userRepo.findOne({ where: { id: userId } }) : null;
