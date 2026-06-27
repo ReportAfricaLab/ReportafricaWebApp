@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ElectionReportEntity } from '../../database/entities';
+import * as crypto from 'crypto';
+
+const OVER_VOTING_THRESHOLD = 500;
 
 @Injectable()
 export class ElectionService {
@@ -24,6 +27,29 @@ export class ElectionService {
     longitude?: number;
     recordedAt?: string;
   }) {
+    // Generate result hash for result_upload type
+    let resultHash: string | undefined;
+    let overVotingFlag = false;
+    let prevHash: string | undefined;
+
+    if (dto.type === 'result_upload' && dto.results) {
+      // Result chain hash
+      const hashInput = `${dto.pollingUnit || ''}|${dto.electionName}|${JSON.stringify(dto.results)}|${Date.now()}`;
+      resultHash = crypto.createHash('sha256').update(hashInput).digest('hex');
+
+      // Over-voting detection
+      const totalVotes = Object.values(dto.results).reduce((sum, v) => sum + v, 0);
+      if (totalVotes > OVER_VOTING_THRESHOLD) overVotingFlag = true;
+
+      // Hash chain - get previous report hash
+      const lastReport = await this.electionRepo.findOne({
+        where: { country, electionName: dto.electionName, type: 'result_upload' },
+        order: { createdAt: 'DESC' },
+        select: ['resultHash'],
+      });
+      prevHash = lastReport?.resultHash || 'genesis';
+    }
+
     const report = this.electionRepo.create({
       ...dto,
       userId,
@@ -31,8 +57,69 @@ export class ElectionService {
       results: dto.results || {},
       media: dto.media || [],
       recordedAt: dto.recordedAt ? new Date(dto.recordedAt) : undefined,
+      resultHash,
+      overVotingFlag,
+      prevHash,
+    } as any);
+
+    const saved = await this.electionRepo.save(report);
+
+    // Multi-source verification - check if other results exist for same PU
+    if (dto.type === 'result_upload' && dto.pollingUnit) {
+      await this.verifyMultiSource(saved.id, dto.pollingUnit, dto.electionName, dto.results || {});
+    }
+
+    return saved;
+  }
+
+  private async verifyMultiSource(currentId: string, pollingUnit: string, electionName: string, currentResults: Record<string, number>) {
+    const others = await this.electionRepo.find({
+      where: { pollingUnit, electionName, type: 'result_upload' },
     });
-    return this.electionRepo.save(report);
+
+    if (others.length < 2) return; // Need at least 2 to verify
+
+    // Check if results match
+    const matching = others.filter(o => {
+      if (o.id === currentId) return true;
+      const oResults = o.results || {};
+      return JSON.stringify(oResults) === JSON.stringify(currentResults);
+    });
+
+    if (matching.length >= 2) {
+      // Results match - mark all as citizen_verified
+      const ids = matching.map(m => m.id);
+      await this.electionRepo.update(ids, { verificationStatus: 'citizen_verified' } as any);
+    } else if (others.length >= 2) {
+      // Results conflict - mark as disputed
+      const ids = others.map(m => m.id);
+      await this.electionRepo.update(ids, { verificationStatus: 'disputed' } as any);
+    }
+  }
+
+  // Parallel Vote Tabulation
+  async getParallelCount(country: string, electionName: string) {
+    const results = await this.electionRepo.find({
+      where: { country, electionName, type: 'result_upload' },
+      select: ['state', 'results', 'pollingUnit', 'verificationStatus'],
+    });
+
+    // Group by state and sum party votes
+    const stateResults: Record<string, { parties: Record<string, number>; puCount: number; verified: number; disputed: number }> = {};
+
+    for (const r of results) {
+      const state = r.state || 'Unknown';
+      if (!stateResults[state]) stateResults[state] = { parties: {}, puCount: 0, verified: 0, disputed: 0 };
+      stateResults[state].puCount++;
+      if (r.verificationStatus === 'citizen_verified') stateResults[state].verified++;
+      if (r.verificationStatus === 'disputed') stateResults[state].disputed++;
+
+      for (const [party, votes] of Object.entries(r.results || {})) {
+        stateResults[state].parties[party] = (stateResults[state].parties[party] || 0) + Number(votes);
+      }
+    }
+
+    return { stateResults, totalPUs: results.length, election: electionName };
   }
 
   async getFeed(country: string, electionName?: string, page = 1, limit = 20) {

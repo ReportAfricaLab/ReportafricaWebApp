@@ -72,4 +72,16 @@ export class ElectionReportEntity {
   @CreateDateColumn({ name: 'created_at' })
   @Index()
   createdAt: Date;
+
+  @Column({ name: 'verification_status', default: 'unverified' })
+  verificationStatus: string; // unverified, citizen_verified, disputed
+
+  @Column({ name: 'over_voting_flag', default: false })
+  overVotingFlag: boolean;
+
+  @Column({ name: 'result_hash', nullable: true })
+  resultHash: string;
+
+  @Column({ name: 'prev_hash', nullable: true })
+  prevHash: string;
 }

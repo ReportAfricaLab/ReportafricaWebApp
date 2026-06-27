@@ -233,6 +233,10 @@ async function bootstrap() {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_jurisdiction_state VARCHAR DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_trial_start TIMESTAMP DEFAULT NULL;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS gov_trial_end TIMESTAMP DEFAULT NULL;
+        ALTER TABLE election_reports ADD COLUMN IF NOT EXISTS verification_status VARCHAR DEFAULT 'unverified';
+        ALTER TABLE election_reports ADD COLUMN IF NOT EXISTS over_voting_flag BOOLEAN DEFAULT FALSE;
+        ALTER TABLE election_reports ADD COLUMN IF NOT EXISTS result_hash VARCHAR DEFAULT NULL;
+        ALTER TABLE election_reports ADD COLUMN IF NOT EXISTS prev_hash VARCHAR DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_headline VARCHAR DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_moderation_score INT DEFAULT NULL;
         ALTER TABLE reports ADD COLUMN IF NOT EXISTS ai_flags VARCHAR DEFAULT NULL;

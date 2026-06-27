@@ -5,7 +5,7 @@ import { api } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-type Tab = 'feed' | 'incidents' | 'results' | 'hotspots' | 'live';
+type Tab = 'feed' | 'incidents' | 'results' | 'hotspots' | 'live' | 'parallel';
 
 const INCIDENT_COLORS: Record<string, string> = {
   violence: '#DC2626',
@@ -93,7 +93,7 @@ export default function ElectionsPage() {
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto">
-        {([['feed', '📰 Feed'], ['live', '🔴 Live'], ['incidents', '⚠️ Incidents'], ['results', '📊 Results'], ['hotspots', '🔥 Hotspots']] as [Tab, string][]).map(([key, label]) => (
+        {([['feed', '📰 Feed'], ['live', '🔴 Live'], ['incidents', '⚠️ Incidents'], ['results', '📊 Results'], ['hotspots', '🔥 Hotspots'], ['parallel', '🗳️ Parallel Count']] as [Tab, string][]).map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition ${tab === key ? 'bg-[#0F7B6C] text-white' : 'bg-gray-100 text-gray-600'}`}>
             {label}
@@ -142,6 +142,10 @@ export default function ElectionsPage() {
                 <span className="px-2 py-0.5 text-xs font-bold rounded text-white bg-green-600">RESULT</span>
                 {r.state && <span className="text-xs text-gray-500">{r.state}</span>}
                 {r.pollingUnit && <span className="text-xs text-gray-400">· PU: {r.pollingUnit}</span>}
+                {r.verificationStatus === 'citizen_verified' && <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">✅ Verified by multiple citizens</span>}
+                {r.verificationStatus === 'disputed' && <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded font-medium">⚠️ Disputed — conflicting uploads</span>}
+                {r.overVotingFlag && <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">🚨 Over-voting ({Object.values(r.results || {}).reduce((a: number, b: any) => a + Number(b), 0)} votes)</span>}
+                {r.resultHash && <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded" title={r.resultHash}>🔒 Sealed</span>}
               </div>
               {r.results && Object.keys(r.results).length > 0 && (
                 <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded-lg">
@@ -189,6 +193,9 @@ export default function ElectionsPage() {
 
       {/* Live Tab */}
       {!loading && tab === 'live' && <ElectionLiveTab streams={liveStreams} />}
+
+      {/* Parallel Vote Tabulation */}
+      {!loading && tab === 'parallel' && <ParallelCountTab election={election} />}
 
       {/* Submit Report Modal */}
       {showForm && <ElectionReportForm election={election} quickResult={quickResult} onClose={() => setShowForm(false)} onSubmitted={() => { setShowForm(false); loadData(); }} />}
@@ -292,6 +299,62 @@ function ElectionLiveTab({ streams }: { streams: any[] }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// === Parallel Vote Tabulation ===
+
+function ParallelCountTab({ election }: { election: string }) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_URL}/elections/parallel-count?country=NG&election=${encodeURIComponent(election)}`)
+      .then(r => r.json()).then(setData).catch(() => {}).finally(() => setLoading(false));
+  }, [election]);
+
+  if (loading) return <div className="text-center py-12 text-gray-400">Loading parallel count...</div>;
+  if (!data?.stateResults || Object.keys(data.stateResults).length === 0) {
+    return <EmptyState icon="🗳️" title="No results uploaded yet" desc="As citizens upload polling unit results, the parallel count will appear here" />;
+  }
+
+  const allParties = [...new Set(Object.values(data.stateResults).flatMap((s: any) => Object.keys(s.parties)))];
+
+  return (
+    <div>
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+        <p className="text-sm font-semibold text-blue-800">🗳️ Citizen Parallel Vote Tabulation</p>
+        <p className="text-xs text-blue-600 mt-1">This shows vote totals as uploaded by citizens from polling units. Compare with official INEC results to detect discrepancies.</p>
+        <p className="text-xs text-blue-500 mt-1">Total PUs reported: {data.totalPUs}</p>
+        <p className="text-xs text-gray-400 mt-1">Official results comparison will appear here once INEC announces — any discrepancy will be flagged 🚨</p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">State</th>
+              {allParties.map(p => <th key={p} className="px-3 py-2 text-right text-xs font-semibold text-gray-600">{p}</th>)}
+              <th className="px-3 py-2 text-right text-xs font-semibold text-gray-600">PUs</th>
+              <th className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {Object.entries(data.stateResults).sort((a: any, b: any) => b[1].puCount - a[1].puCount).map(([state, info]: [string, any]) => (
+              <tr key={state} className="hover:bg-gray-50">
+                <td className="px-3 py-2 font-medium text-gray-900">{state}</td>
+                {allParties.map(p => <td key={p} className="px-3 py-2 text-right font-bold text-gray-800">{(info.parties[p] || 0).toLocaleString()}</td>)}
+                <td className="px-3 py-2 text-right text-gray-500">{info.puCount}</td>
+                <td className="px-3 py-2 text-right">
+                  {info.verified > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ {info.verified}</span>}
+                  {info.disputed > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-700 rounded ml-1">⚠️ {info.disputed}</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
