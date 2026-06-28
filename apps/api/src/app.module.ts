@@ -45,6 +45,7 @@ import { QuizModule } from './modules/quiz/quiz.module';
 import { ChallengesModule } from './modules/challenges/challenges.module';
 import { TripsModule } from './modules/trips/trips.module';
 import { GovModule } from './modules/gov/gov.module';
+import { ObserverModule } from './modules/observer/observer.module';
 
 @Module({
   imports: [
@@ -137,6 +138,7 @@ import { GovModule } from './modules/gov/gov.module';
     ChallengesModule,
     TripsModule,
     GovModule,
+    ObserverModule,
   ],
 })
 export class AppModule {}

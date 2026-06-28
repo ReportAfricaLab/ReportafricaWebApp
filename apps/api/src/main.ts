@@ -252,6 +252,24 @@ async function bootstrap() {
           last_sent_hour VARCHAR DEFAULT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_notif_prefs_user ON notification_preferences(user_id);
+        CREATE TABLE IF NOT EXISTS observers (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL,
+          org_name VARCHAR DEFAULT NULL,
+          country VARCHAR(2) NOT NULL,
+          tier VARCHAR DEFAULT 'individual',
+          accreditation_url VARCHAR DEFAULT NULL,
+          status VARCHAR DEFAULT 'observer_pending',
+          seats INT DEFAULT 1,
+          paid_at TIMESTAMP DEFAULT NULL,
+          expires_at TIMESTAMP DEFAULT NULL,
+          paystack_reference VARCHAR DEFAULT NULL,
+          invited_by UUID DEFAULT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_observers_user ON observers(user_id);
+        CREATE INDEX IF NOT EXISTS idx_observers_country ON observers(country);
+        CREATE INDEX IF NOT EXISTS idx_observers_status ON observers(status);
       `);
       logger.log('Startup migration: livestreams columns verified');
     } catch (err) {
