@@ -230,15 +230,15 @@ function PendingPage() {
 // === Payment page ===
 function PayPage({ observer, onSuccess }: { observer: any; onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
   const tierNames: Record<string, string> = { individual: '$500', organization: '$2,000', enterprise: '$10,000' };
 
   const handlePay = async () => {
+    if (!email) { alert('Enter your email'); return; }
     setLoading(true);
-    const email = prompt('Enter your email for payment receipt:');
-    if (!email) { setLoading(false); return; }
     const data = await observerAPI.pay(observer.country, email);
     if (data.authorizationUrl) window.location.href = data.authorizationUrl;
-    else alert(data.message || 'Payment failed');
+    else alert(data.message || 'Payment initialization failed. Please try again.');
     setLoading(false);
   };
 
@@ -254,9 +254,11 @@ function PayPage({ observer, onSuccess }: { observer: any; onSuccess: () => void
           <p className="text-2xl font-bold text-emerald-400 mt-2">{tierNames[observer.tier] || '$500'}</p>
           <p className="text-xs text-gray-500">One-time · 90 days access</p>
         </div>
-        <button onClick={handlePay} disabled={loading} className="w-full py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50 transition">
-          {loading ? 'Processing...' : 'Pay Now'}
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email for payment receipt" className="w-full mb-4 px-4 py-3 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none" />
+        <button onClick={handlePay} disabled={loading || !email} className="w-full py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50 transition">
+          {loading ? 'Redirecting to payment...' : 'Pay Now'}
         </button>
+        <p className="text-xs text-gray-500 mt-3">Secure payment via Paystack. Card, bank transfer, or mobile money.</p>
       </div>
     </div>
   );
