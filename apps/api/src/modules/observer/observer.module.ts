@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ObserverEntity } from '../../database/entities/observer.entity';
+import { UserEntity } from '../../database/entities/user.entity';
 import { ObserverController } from './observer.controller';
 import { ObserverService } from './observer.service';
 import { ObserverGuard } from './observer.guard';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ObserverEntity])],
+  imports: [TypeOrmModule.forFeature([ObserverEntity, UserEntity])],
   controllers: [ObserverController],
   providers: [ObserverService, ObserverGuard],
   exports: [ObserverService, ObserverGuard],
