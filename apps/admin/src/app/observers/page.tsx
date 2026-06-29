@@ -94,15 +94,17 @@ export default function ObserversAdminPage() {
 
 function GrantAccessForm({ observers, onGranted }: { observers: any[]; onGranted: () => void }) {
   const [selectedId, setSelectedId] = useState('');
+  const [manualId, setManualId] = useState('');
   const [tier, setTier] = useState('individual');
   const [days, setDays] = useState('90');
   const [loading, setLoading] = useState(false);
 
   const handleGrant = async () => {
-    if (!selectedId) { alert('Select an observer'); return; }
+    const id = selectedId || manualId;
+    if (!id) { alert('Select an observer or enter an ID'); return; }
     setLoading(true);
     const token = localStorage.getItem('admin_token');
-    const res = await fetch(`${API_URL}/observers/admin/${selectedId}/activate`, {
+    const res = await fetch(`${API_URL}/observers/admin/${id}/activate`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ tier, days: Number(days) }),
@@ -117,10 +119,14 @@ function GrantAccessForm({ observers, onGranted }: { observers: any[]; onGranted
     <div className="mt-8 bg-[#1E293B] rounded-xl border border-gray-700 p-6">
       <h3 className="text-sm font-semibold text-white mb-4">🎟️ Grant Observer Access (No Payment)</h3>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
-          <option value="">Select observer...</option>
-          {observers.map((o: any) => <option key={o.id} value={o.id}>{o.user?.displayName || o.userId} ({o.country})</option>)}
-        </select>
+        {observers.length > 0 ? (
+          <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+            <option value="">Select observer...</option>
+            {observers.map((o: any) => <option key={o.id} value={o.id}>{o.user?.displayName || o.userId} ({o.country})</option>)}
+          </select>
+        ) : (
+          <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="Enter observer ID" className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none" />
+        )}
         <select value={tier} onChange={e => setTier(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
           <option value="individual">Individual (1 seat)</option>
           <option value="organization">Organization (5 seats)</option>

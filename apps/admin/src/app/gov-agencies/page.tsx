@@ -91,14 +91,16 @@ export default function GovAgenciesPage() {
 
 function GovGrantAccessForm({ agencies, onGranted }: { agencies: any[]; onGranted: () => void }) {
   const [selectedId, setSelectedId] = useState('');
+  const [manualId, setManualId] = useState('');
   const [tier, setTier] = useState('basic');
   const [days, setDays] = useState('30');
   const [loading, setLoading] = useState(false);
 
   const handleGrant = async () => {
-    if (!selectedId) { alert('Select an agency'); return; }
+    const id = selectedId || manualId;
+    if (!id) { alert('Select an agency or enter a user ID'); return; }
     setLoading(true);
-    const res = await adminAPI.govGrantAccess(selectedId, tier, Number(days));
+    const res = await adminAPI.govGrantAccess(id, tier, Number(days));
     if (res.granted) { alert(`Access granted: ${tier} for ${days} days`); onGranted(); }
     else alert(res.message || 'Failed');
     setLoading(false);
@@ -108,10 +110,14 @@ function GovGrantAccessForm({ agencies, onGranted }: { agencies: any[]; onGrante
     <div className="mt-8 bg-[#1E293B] rounded-xl border border-gray-700 p-6">
       <h3 className="text-sm font-semibold text-white mb-4">🎟️ Grant Gov Access (No Payment)</h3>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
-          <option value="">Select agency...</option>
-          {agencies.map((u: any) => <option key={u.id} value={u.id}>{u.displayName || u.username} ({u.email})</option>)}
-        </select>
+        {agencies.length > 0 ? (
+          <select value={selectedId} onChange={e => setSelectedId(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
+            <option value="">Select agency...</option>
+            {agencies.map((u: any) => <option key={u.id} value={u.id}>{u.displayName || u.username} ({u.email})</option>)}
+          </select>
+        ) : (
+          <input value={manualId} onChange={e => setManualId(e.target.value)} placeholder="Enter user ID" className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none" />
+        )}
         <select value={tier} onChange={e => setTier(e.target.value)} className="px-3 py-2 bg-[#0F172A] border border-gray-600 rounded-lg text-white text-sm outline-none">
           <option value="basic">Basic ($500/mo)</option>
           <option value="pro">Pro ($2,000/mo)</option>
