@@ -22,7 +22,7 @@ export default function ObserversAdminPage() {
     setActive(Array.isArray(a) ? a : []);
   };
 
-  const handleAction = async (id: string, action: 'approve' | 'reject') => {
+  const handleAction = async (id: string, action: 'approve' | 'reject' | 'activate') => {
     const token = localStorage.getItem('admin_token');
     await fetch(`${API_URL}/observers/admin/${id}/${action}`, { method: 'PATCH', headers: { Authorization: `Bearer ${token}` } });
     loadData();
@@ -61,6 +61,7 @@ export default function ObserversAdminPage() {
               )}
               <div className="flex gap-2">
                 <button onClick={() => handleAction(o.id, 'approve')} className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500">✓ Approve</button>
+                <button onClick={() => handleAction(o.id, 'activate')} className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-500">⚡ Activate (skip payment)</button>
                 <button onClick={() => handleAction(o.id, 'reject')} className="px-4 py-2 text-xs font-semibold text-white bg-red-600 rounded-lg hover:bg-red-500">✕ Reject</button>
               </div>
             </div>
