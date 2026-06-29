@@ -146,11 +146,11 @@ function RegisterPage({ onSuccess, onBack }: { onSuccess: () => void; onBack: ()
     setLoading(true); setError('');
     const data = await observerAPI.register({ email, password, displayName, username: email.split('@')[0], country });
     if (data.token) { localStorage.setItem('obs_token', data.token); setStep('observer'); }
-    else if (data.message?.includes('exists')) {
+    else if (data.message?.includes('already') || data.message?.includes('exists') || data.statusCode === 409) {
       // Try login
       const login = await observerAPI.login(email, password);
       if (login.token) { localStorage.setItem('obs_token', login.token); setStep('observer'); }
-      else setError(login.message || 'Account exists, login failed');
+      else setError('Account exists. Please use the Log In button instead.');
     } else setError(data.message || 'Registration failed');
     setLoading(false);
   };
