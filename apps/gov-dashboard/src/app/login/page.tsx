@@ -28,7 +28,7 @@ export default function GovLoginPage() {
 
       const me = await govAPI.getMe();
       if (me.isPending) {
-        setError('Your agency registration is pending admin approval. You'll be notified once approved.');
+        setError('Your agency registration is pending admin approval. You will be notified once approved.');
         localStorage.removeItem('gov_token');
       } else if (!me.isGov) {
         setError('Access denied. Register your agency first.');
@@ -71,7 +71,7 @@ export default function GovLoginPage() {
       }).then(r => r.json());
 
       if (govRes.registered || govRes.message?.includes('Already')) {
-        setSuccess('✅ Registration submitted! Your agency will be reviewed and approved within 24 hours. You'll receive an email when approved.');
+        setSuccess('✅ Registration submitted! Your agency will be reviewed and approved within 24 hours. You will receive an email when approved.');
       } else {
         setError(govRes.message || 'Agency registration failed');
       }
