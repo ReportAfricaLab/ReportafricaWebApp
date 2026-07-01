@@ -8,7 +8,7 @@ const FAQS = [
   { q: 'Can I report anonymously?', a: 'Yes. Toggle anonymous mode when creating a report. Your identity will be hidden from other users. We also offer face blur for photos and videos.' },
   { q: 'How do trust scores work?', a: 'You earn trust points for accurate reports, community verifications, and consistent activity. Points are deducted for flagged content or disputed reports. Higher trust unlocks features like priority placement.' },
   { q: 'How do donations work?', a: 'Verified users can create fundraising campaigns for emergencies. Donors contribute via Paystack. Campaigns are reviewed for fraud before funds are disbursed.' },
-  { q: 'Can media houses use my content?', a: 'Yes! Through our Media Licensing feature, news organizations can request to license your reports. You earn 50% of the licensing fee.' },
+  { q: 'Can media houses use my content?', a: 'Yes! Through our Media Licensing feature, news organizations can request to license your reports. You earn 50-70% of the licensing fee (certified reporters earn 70%).' },
   { q: 'What countries are supported?', a: 'We currently support 32+ African countries including Nigeria, Ghana, Kenya, South Africa, Egypt, Morocco, Ethiopia, Tanzania, Uganda, Rwanda, and more.' },
   { q: 'How does the SOS feature work?', a: 'Tap the SOS button to send an emergency alert with your location. Nearby users and relevant authorities are notified immediately.' },
   { q: 'Can I go live?', a: 'Yes! Authenticated users can start a live stream directly from the app. Viewers can watch in real time and interact via chat.' },

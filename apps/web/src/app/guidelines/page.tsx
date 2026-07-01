@@ -55,7 +55,7 @@ export default function GuidelinesPage() {
         <section>
           <h2 className="text-xl font-semibold text-gray-800 mb-3">Reporting Violations</h2>
           <p className="text-gray-600 text-sm leading-relaxed">
-            If you see content that violates these guidelines, use the report button on any post or contact us at moderation@reportafrica.africa.
+            If you see content that violates these guidelines, use the report button on any post or contact us at support@reportafrica.africa.
           </p>
         </section>
       </div>

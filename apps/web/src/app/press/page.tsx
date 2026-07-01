@@ -16,7 +16,7 @@ export default function PressPage() {
         <div className="grid md:grid-cols-3 gap-4">
           {[
             { label: 'Countries', value: '32+' },
-            { label: 'Report Categories', value: '8' },
+            { label: 'Report Categories', value: '15+' },
             { label: 'Founded', value: '2024' },
             { label: 'Headquarters', value: 'Lagos, Nigeria' },
             { label: 'Platform', value: 'Web, iOS, Android' },
@@ -70,7 +70,7 @@ export default function PressPage() {
       <section>
         <h2 className="text-xl font-semibold text-gray-800 mb-3">Press Contact</h2>
         <p className="text-gray-600 text-sm">For press inquiries, interviews, or media partnerships:</p>
-        <p className="text-[#0F7B6C] font-semibold text-sm mt-2">press@reportafrica.africa</p>
+        <p className="text-[#0F7B6C] font-semibold text-sm mt-2">support@reportafrica.africa</p>
       </section>
     </div>
   );

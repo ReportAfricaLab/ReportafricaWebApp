@@ -47,7 +47,7 @@ export default function PartnersPage() {
       <section className="p-8 bg-[#0F7B6C]/5 rounded-xl border border-[#0F7B6C]/10 text-center">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">Become a Partner</h2>
         <p className="text-gray-600 text-sm mb-4">Interested in partnering with ReportAfrica? Let&apos;s talk.</p>
-        <a href="mailto:partners@reportafrica.africa" className="inline-block px-6 py-3 bg-[#0F7B6C] text-white font-semibold rounded-lg hover:bg-[#0B6E4F] transition">
+        <a href="mailto:support@reportafrica.africa" className="inline-block px-6 py-3 bg-[#0F7B6C] text-white font-semibold rounded-lg hover:bg-[#0B6E4F] transition">
           Contact Partnerships Team
         </a>
       </section>
