@@ -119,7 +119,7 @@ export default function ReportDetailScreen({ route }: any) {
 
   const HIGH_RISK_CATEGORIES = ['election', 'police_security', 'emergency', 'health'];
   const handleShare = () => {
-    const doShare = () => Share.share({ message: `${report.title} — ReportAfrica https://reportafrica-web.vercel.app/report?id=${id}` });
+    const doShare = () => Share.share({ message: `${report.title} — ReportAfrica https://www.reportafrica.africa/report?id=${id}` });
     if (HIGH_RISK_CATEGORIES.includes(report.category) && report.verificationLevel === 'unverified') {
       Alert.alert(
         '⚠️ Unverified Report',

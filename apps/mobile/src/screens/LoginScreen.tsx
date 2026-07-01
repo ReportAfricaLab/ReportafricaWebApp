@@ -21,7 +21,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       // Open Google login in browser, redirect to our web callback which handles the token
-      const callbackUrl = 'https://reportafrica-web.vercel.app/google-callback';
+      const callbackUrl = 'https://www.reportafrica.africa/google-callback';
       const scope = 'openid email profile';
       const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=token+id_token&scope=${encodeURIComponent(scope)}&nonce=${Date.now()}`;
 

@@ -35,7 +35,7 @@ export default function ReferralScreen() {
     Share.share({
       message: `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code: ${code}
 
-Sign up: https://reportafrica-web.vercel.app/register`,
+Sign up: https://www.reportafrica.africa/register`,
     });
   };
 
@@ -66,7 +66,7 @@ Sign up: https://reportafrica-web.vercel.app/register`,
             <Text style={styles.copyBtnText}>📋 Copy Code</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.copyInviteBtn} onPress={() => {
-            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
+            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://www.reportafrica.africa/register`;
             Clipboard.setString(msg); Alert.alert('Copied', 'Invite message copied!');
           }}>
             <Text style={styles.copyInviteBtnText}>📋 Copy Invite</Text>
@@ -74,7 +74,7 @@ Sign up: https://reportafrica-web.vercel.app/register`,
         </View>
         <View style={styles.btnRow}>
           <TouchableOpacity style={styles.whatsappBtn} onPress={() => {
-            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://reportafrica-web.vercel.app/register`;
+            const msg = `Join ReportAfrica — Africa's citizen reporting platform! Use my referral code ${code} when you sign up. https://www.reportafrica.africa/register`;
             Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`);
           }}>
             <Text style={styles.whatsappBtnText}>WhatsApp</Text>
