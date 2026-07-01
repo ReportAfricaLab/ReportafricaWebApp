@@ -71,3 +71,12 @@
 - [ ] Build heat map component for mobile Elections Hotspots tab
 - [ ] Test on both iOS and Android EAS builds
 - [ ] Note: Cannot use Expo Go after this — requires development build
+
+### PostHog Product Analytics (Post-launch, Week 3-4)
+- [ ] Install PostHog SDK on web app (`posthog-js`)
+- [ ] Install PostHog SDK on mobile app (`posthog-react-native`)
+- [ ] Track key events: signup, first report, donation, tip, follow
+- [ ] Set up funnels: signup → verify email → first report → second report
+- [ ] Session replays (web only) to understand UX issues
+- [ ] Feature flags for A/B testing new features
+- [ ] Free tier: 1M events/month
