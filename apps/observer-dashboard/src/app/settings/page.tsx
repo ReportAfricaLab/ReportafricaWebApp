@@ -64,7 +64,7 @@ export default function SettingsPage() {
 
       <div className="bg-[#1E293B] rounded-xl border border-gray-700 p-6">
         <h3 className="text-sm font-semibold text-gray-400 uppercase mb-4">Support</h3>
-        <p className="text-sm text-gray-300">Need help? Contact <a href="mailto:observers@reportafrica.africa" className="text-emerald-400 hover:underline">observers@reportafrica.africa</a></p>
+        <p className="text-sm text-gray-300">Need help? Contact <a href="mailto:support@reportafrica.africa" className="text-emerald-400 hover:underline">support@reportafrica.africa</a></p>
       </div>
     </ObserverShell>
   );

@@ -292,8 +292,8 @@ export default function FeedPage() {
               <p className="text-sm font-semibold text-[#0F7B6C]">📱 Get the App</p>
               <p className="text-xs text-gray-500 mt-1">Report faster on mobile</p>
               <div className="flex gap-2 mt-3 justify-center">
-                <span className="px-3 py-1.5 bg-black text-white text-[10px] font-medium rounded">App Store</span>
-                <span className="px-3 py-1.5 bg-black text-white text-[10px] font-medium rounded">Play Store</span>
+                <span className="px-3 py-1.5 bg-gray-800 text-gray-400 text-[10px] font-medium rounded">App Store — Coming Soon</span>
+                <span className="px-3 py-1.5 bg-gray-800 text-gray-400 text-[10px] font-medium rounded">Play Store — Coming Soon</span>
               </div>
             </div>
           </div>
