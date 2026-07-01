@@ -118,7 +118,7 @@ export const livestreamAPI = {
 
 export const searchAPI = {
   search: (query: string, country?: string, category?: string, page = 1) =>
-    api.get(`/search?q=${encodeURIComponent(query)}${country ? `&country=${country}` : ''}${category ? `&category=${category}` : ''}&page=${page}`),
+    api.get(`/search/reports?q=${encodeURIComponent(query)}${country ? `&country=${country}` : ''}${category ? `&category=${category}` : ''}&page=${page}`),
   trending: (country?: string) => api.get(`/search/trending${country ? `?country=${country}` : ''}`),
   suggestions: (query: string) => api.get(`/search/suggestions?q=${encodeURIComponent(query)}`),
 };

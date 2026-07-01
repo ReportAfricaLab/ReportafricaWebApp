@@ -64,13 +64,13 @@ export class SearchService {
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.author', 'author')
       .where('report.country = :country', { country })
-      .andWhere('report."created_at" > :since', { since })
-      .orderBy('report.upvotes + report."comment_count" + report."view_count"', 'DESC')
+      .andWhere('report.createdAt > :since', { since })
+      .orderBy('report.upvotes + report.commentCount + report.viewCount', 'DESC')
       .take(20)
       .getMany();
 
     if (this.cache) {
-      await this.cache.set(cacheKey, results, 120000); // 2 min cache
+      await this.cache.set(cacheKey, results, 120000);
     }
 
     return results;
