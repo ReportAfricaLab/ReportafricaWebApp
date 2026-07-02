@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reportafrica-v1';
+const CACHE_NAME = 'reportafrica-v2';
 const STATIC_ASSETS = ['/', '/icon.png', '/logo.png', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -21,6 +21,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
   if (request.url.includes('/api/')) return;
+  if (!request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
