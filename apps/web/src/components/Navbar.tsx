@@ -27,6 +27,13 @@ const TRUST_LABELS: Record<string, { label: string; color: string }> = {
   investigative_reporter: { label: 'Investigative Reporter', color: '#DC2626' },
 };
 
+function goToAcademy() {
+  const token = localStorage.getItem('ra_token');
+  window.location.href = token
+    ? `https://academy.reportafrica.africa/auth?token=${token}`
+    : 'https://academy.reportafrica.africa';
+}
+
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const { t } = useI18n();
@@ -65,6 +72,37 @@ export default function Navbar() {
   ];
 
   const navLinks = isAuthenticated ? authNavLinks : guestNavLinks;
+
+  const desktopDropdownLinks = [
+    { href: '/profile', icon: '👤', label: 'My Profile' },
+    { href: '/notifications', icon: '🔔', label: 'Notifications' },
+    { href: '/earnings', icon: '💰', label: 'My Earnings' },
+    { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
+    { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
+    { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
+    { href: '/watchlist', icon: '📍', label: 'Watchlists' },
+    { href: '/referral', icon: '🎁', label: 'Referral' },
+    { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
+  ];
+
+  const mobileMenuLinks = [
+    { href: '/profile', icon: '👤', label: 'My Profile' },
+    { href: '/notifications', icon: '🔔', label: 'Notifications' },
+    { href: '/earnings', icon: '💰', label: 'My Earnings' },
+    { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
+    { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
+    { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
+    { href: '/watchlist', icon: '📍', label: 'Watchlists' },
+    { href: '/referral', icon: '🎁', label: 'Referral' },
+    { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    { href: '/challenges', icon: '💰', label: 'Promo Gigs' },
+    { href: '/business', icon: '🏪', label: 'Business' },
+    { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
+    { href: '/government', icon: '🏛️', label: 'For Government' },
+    { href: 'https://observers.reportafrica.africa', icon: '🗳️', label: 'Election Observers' },
+    ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
+  ];
 
   return (
     <header className="fixed top-0 w-full bg-white/95 dark:bg-[#1E293B]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 z-50">
@@ -117,25 +155,17 @@ export default function Navbar() {
                       </div>
                     </div>
                     <div className="py-1">
-                      {[
-                        { href: '/profile', icon: '👤', label: 'My Profile' },
-                        { href: '/notifications', icon: '🔔', label: 'Notifications' },
-                        { href: '/earnings', icon: '💰', label: 'My Earnings' },
-                        { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
-                        { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
-                        { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
-                        { href: '/watchlist', icon: '📍', label: 'Watchlists' },
-                        { href: '/referral', icon: '🎁', label: 'Referral' },
-                        { href: 'https://academy.reportafrica.africa', icon: '🎓', label: 'Academy' },
-                        { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
-                        ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
-                      ].map((item) => (
+                      {desktopDropdownLinks.map((item) => (
                         <Link key={item.href} href={item.href} onClick={() => setShowDropdown(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                           <span>{item.icon}</span>
                           <span>{item.label}</span>
                         </Link>
                       ))}
+                      <button onClick={() => { goToAcademy(); setShowDropdown(false); }}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition w-full text-left">
+                        <span>🎓</span><span>Academy</span>
+                      </button>
                     </div>
                     <div className="border-t border-gray-100 dark:border-gray-700 pt-1">
                       <button onClick={() => { logout(); setShowDropdown(false); }}
@@ -173,7 +203,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu — includes nav links + profile */}
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E293B] max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="flex flex-col px-4 py-3 space-y-1">
@@ -185,7 +215,6 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Profile section inside mobile menu */}
           {isAuthenticated && (
             <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
               <div className="flex items-center gap-3 mb-3">
@@ -201,29 +230,16 @@ export default function Navbar() {
                 </div>
               </div>
               <div className="space-y-1">
-                {[
-                  { href: '/profile', icon: '👤', label: 'My Profile' },
-                  { href: '/notifications', icon: '🔔', label: 'Notifications' },
-                  { href: '/earnings', icon: '💰', label: 'My Earnings' },
-                  { href: '/trust', icon: '🛡️', label: 'Trust Profile' },
-                  { href: '/leaderboard', icon: '🏆', label: 'Leaderboard' },
-                  { href: '/tip-packs', icon: '💳', label: 'Tip Packs' },
-                  { href: '/watchlist', icon: '📍', label: 'Watchlists' },
-                  { href: '/referral', icon: '🎁', label: 'Referral' },
-                  { href: 'https://academy.reportafrica.africa', icon: '🎓', label: 'Academy' },
-                  { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
-                  { href: '/challenges', icon: '💰', label: 'Promo Gigs' },
-                  { href: '/business', icon: '🏪', label: 'Business' },
-                  { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
-                  { href: '/government', icon: '🏛️', label: 'For Government' },
-                  { href: 'https://observers.reportafrica.africa', icon: '🗳️', label: 'Election Observers' },
-                  ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
-                ].map((item) => (
+                {mobileMenuLinks.map((item) => (
                   <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-3 py-2.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
                     <span>{item.icon}</span><span>{item.label}</span>
                   </Link>
                 ))}
+                <button onClick={() => { goToAcademy(); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-3 py-2.5 px-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition w-full text-left">
+                  <span>🎓</span><span>Academy</span>
+                </button>
               </div>
               <button onClick={() => { logout(); setMobileMenuOpen(false); }}
                 className="flex items-center gap-3 py-2.5 px-3 mt-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition w-full">
@@ -236,5 +252,3 @@ export default function Navbar() {
     </header>
   );
 }
-
-
