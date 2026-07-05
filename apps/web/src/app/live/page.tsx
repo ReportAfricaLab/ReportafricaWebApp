@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth-context';
 const StreamPlayer = dynamic(() => import('@/components/StreamPlayer'), { ssr: false });
 const StreamBroadcaster = dynamic(() => import('@/components/StreamBroadcaster'), { ssr: false });
 
-const WS_URL = (process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001') + '/realtime';
+const WS_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace('/api/v1', '');
 
 type StreamStatus = 'idle' | 'preview' | 'live' | 'ended';
 type Tab = 'go-live' | 'watching' | 'recordings';
@@ -93,7 +93,7 @@ function LiveContent() {
 
     import('socket.io-client').then(({ io }) => {
       if (!mounted) return;
-      socket = io(WS_URL, {
+      socket = io(`${WS_BASE}/realtime`, {
         transports: ['websocket', 'polling'],
         auth: { token: authToken },
         forceNew: true,
