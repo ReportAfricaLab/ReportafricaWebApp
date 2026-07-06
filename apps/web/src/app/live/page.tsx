@@ -89,7 +89,8 @@ function LiveContent() {
 
     let socket: any;
     let mounted = true;
-    const authToken = token || localStorage.getItem('ra_token');
+    const authToken = token || (typeof window !== 'undefined' ? localStorage.getItem('ra_token') : null);
+    if (!authToken) return; // wait until auth is available
 
     import('socket.io-client').then(({ io }) => {
       if (!mounted) return;
@@ -129,7 +130,7 @@ function LiveContent() {
       }
       socketRef.current = null;
     };
-  }, [streamId, status]);
+  }, [streamId, status, token]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -210,7 +211,8 @@ function LiveContent() {
   };
 
   const sendChat = () => {
-    if (!chatInput.trim() || !socketRef.current || !user) return;
+    if (!chatInput.trim() || !socketRef.current) return;
+    if (!user) { router.push('/login'); return; }
     const text = chatInput.trim();
     socketRef.current.emit('chat:send', {
       roomId: `stream:${streamId}`,
