@@ -387,8 +387,7 @@ function ReportContent() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">📝 {t('update.title', 'Updates')} ({updates.length})</h2>
 
-        {token && report.authorId === (undefined) && null}
-        {token && (
+        {token && report.authorId === JSON.parse(localStorage.getItem('ra_user') || '{}')?.id && (
           <div className="flex gap-2 mb-4">
             <input value={updateText} onChange={(e) => setUpdateText(e.target.value)}
               placeholder="Post an update (author only)..." maxLength={500}

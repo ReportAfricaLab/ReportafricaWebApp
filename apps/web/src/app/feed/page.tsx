@@ -108,6 +108,7 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [promoted, setPromoted] = useState<any[]>([]);
+  const [topReporters, setTopReporters] = useState<any[]>([]);
 
   const registerWebPush = async () => {
     try {
@@ -133,6 +134,8 @@ export default function FeedPage() {
     if (location) { params.set('lat', String(location.lat)); params.set('lng', String(location.lng)); }
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/businesses/promoted?${params}`)
       .then(r => r.json()).then(d => setPromoted(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1'}/leaderboard?country=${country}&period=week&limit=3`)
+      .then(r => r.json()).then(d => setTopReporters(Array.isArray(d) ? d : [])).catch(() => {});
   }, [country, location]);
 
   useEffect(() => {
@@ -263,14 +266,21 @@ export default function FeedPage() {
             <div className="bg-white rounded-xl border border-gray-100 p-4">
               <h3 className="text-sm font-bold text-gray-900 mb-3">🏆 Top Reporters</h3>
               <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
+              {topReporters.slice(0, 3).map((item: any, i: number) => (
+                  <div key={item.userId} className="flex items-center gap-2 py-1.5">
+                    <span className="text-xs font-bold text-gray-400 w-4">#{item.rank || i+1}</span>
+                    <div className="w-7 h-7 rounded-full bg-[#0F7B6C]/10 flex items-center justify-center text-[10px] font-bold text-[#0F7B6C]">{item.displayName?.[0] || '?'}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-700 truncate">{item.displayName || item.username}</p>
+                      <p className="text-[10px] text-gray-400">{item.score} pts</p>
+                    </div>
+                  </div>
+                ))}
+              {topReporters.length === 0 && [1,2,3].map((i) => (
                   <div key={i} className="flex items-center gap-2 py-1.5">
                     <span className="text-xs font-bold text-gray-400 w-4">#{i}</span>
-                    <div className="w-7 h-7 rounded-full bg-[#0F7B6C]/10 flex items-center justify-center text-[10px] font-bold text-[#0F7B6C]">?</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-700 truncate">—</p>
-                      <p className="text-[10px] text-gray-400">Loading...</p>
-                    </div>
+                    <div className="w-7 h-7 rounded-full bg-gray-100" />
+                    <div className="flex-1"><p className="text-xs text-gray-300">Loading...</p></div>
                   </div>
                 ))}
               </div>

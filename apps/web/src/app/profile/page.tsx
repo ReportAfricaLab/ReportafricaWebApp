@@ -39,8 +39,10 @@ export default function ProfilePage() {
     if (!token) return;
     fetch(`${API_URL}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json()).then((d) => { setProfile(d); setEditName(d.displayName || ''); }).catch(() => {});
-    fetch(`${API_URL}/follows/${user?.id}/counts`)
-      .then((r) => r.json()).then((d) => { setFollowers(d.followers || 0); setFollowing(d.following || 0); }).catch(() => {});
+    if (user?.id) {
+      fetch(`${API_URL}/follows/${user.id}/counts`)
+        .then((r) => r.json()).then((d) => { setFollowers(d.followers || 0); setFollowing(d.following || 0); }).catch(() => {});
+    }
     fetch(`${API_URL}/tips/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json()).then((d) => { setTipBalance(d.balance || 0); setTipCurrency(d.currency || 'NGN'); }).catch(() => {});
   }, [token, user]);

@@ -27,7 +27,7 @@ function CampaignContent() {
       api.donations.getDonations(id),
     ]).then(([c, d]) => {
       setCampaign(c);
-      setDonations(d);
+      setDonations(Array.isArray(d) ? d : d.data || []);
     }).finally(() => setLoading(false));
   }, [id]);
 

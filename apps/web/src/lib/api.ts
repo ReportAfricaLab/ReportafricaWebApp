@@ -131,7 +131,7 @@ export const api = {
       fetchAPI('/upload/presigned-url', { method: 'POST', body: JSON.stringify({ fileType, contentType }), token }),
   },
   search: {
-    reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?query=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
+    reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?q=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
     trending: (country: string) => fetchAPI(`/search/trending?country=${country}`),
     suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?query=${encodeURIComponent(query)}&country=${country || 'NG'}`),
   },
