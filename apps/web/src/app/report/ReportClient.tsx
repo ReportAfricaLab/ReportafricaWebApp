@@ -25,7 +25,7 @@ function ReportContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { token } = useAuth();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<any[]>([]);
@@ -251,7 +251,7 @@ function ReportContent() {
             const res = await fetch(`${API_URL}/voice/translate`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: report.description, targetLanguage: 'en' }),
+              body: JSON.stringify({ text: report.description, targetLanguage: language }),
             });
             const data = await res.json();
             setTranslatedText(data.translatedText || report.description);

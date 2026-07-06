@@ -34,6 +34,51 @@ function goToAcademy() {
     : 'https://academy.reportafrica.africa';
 }
 
+const LANGUAGES = [
+  { code: 'en', label: 'EN', name: 'English' },
+  { code: 'fr', label: 'FR', name: 'Français' },
+  { code: 'ar', label: 'AR', name: 'العربية' },
+  { code: 'pt', label: 'PT', name: 'Português' },
+  { code: 'sw', label: 'SW', name: 'Kiswahili' },
+];
+
+function LanguageSwitcher() {
+  const { language, setLanguage } = useI18n();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const current = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-gray-600 hover:text-[#0F7B6C] border border-gray-200 rounded-lg hover:border-[#0F7B6C] transition">
+        🌐 {current.label}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-9 w-36 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-50">
+          {LANGUAGES.map(l => (
+            <button key={l.code} onClick={() => { setLanguage(l.code); setOpen(false); }}
+              className={`w-full text-left px-4 py-2 text-sm transition ${
+                language === l.code ? 'text-[#0F7B6C] font-semibold bg-[#0F7B6C]/5' : 'text-gray-700 hover:bg-gray-50'
+              }`}>
+              {l.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
   const { t } = useI18n();
@@ -123,6 +168,8 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher />
           {isAuthenticated ? (
             <>
               <Link href="/create-report" className="px-3 py-2 text-xs font-semibold text-white bg-[#D92D20] rounded-lg hover:bg-red-700 transition">

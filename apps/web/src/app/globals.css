@@ -14,6 +14,25 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* RTL support for Arabic */
+[dir='rtl'] {
+  font-family: 'Segoe UI', 'Tahoma', system-ui, sans-serif;
+}
+[dir='rtl'] .space-y-4 > * + *,
+[dir='rtl'] .space-y-2 > * + *,
+[dir='rtl'] .space-y-3 > * + * {
+  margin-top: inherit;
+}
+[dir='rtl'] .ml-auto { margin-left: unset; margin-right: auto; }
+[dir='rtl'] .mr-auto { margin-right: unset; margin-left: auto; }
+[dir='rtl'] .text-left { text-align: right; }
+[dir='rtl'] .text-right { text-align: left; }
+[dir='rtl'] .rounded-l-lg { border-radius: 0 0.5rem 0.5rem 0; }
+[dir='rtl'] .rounded-r-lg { border-radius: 0.5rem 0 0 0.5rem; }
+[dir='rtl'] .border-l-2 { border-left: none; border-right-width: 2px; }
+[dir='rtl'] .pl-3 { padding-left: unset; padding-right: 0.75rem; }
+[dir='rtl'] .pr-3 { padding-right: unset; padding-left: 0.75rem; }
+
 /* Custom scrollbar - always visible */
 * {
   scrollbar-width: thin;
