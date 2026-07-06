@@ -49,7 +49,7 @@ function LiveKitMobileContent() {
       room.connect(wsUrl, token).then(async () => {
         const tracks = await createLocalTracks({
           audio: true,
-          video: { resolution: { width: 1280, height: 720 }, facingMode: 'environment' },
+          video: { resolution: { width: 1280, height: 720 }, facingMode: 'user' },
         });
 
         for (const track of tracks) {

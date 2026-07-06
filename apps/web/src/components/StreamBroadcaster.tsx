@@ -23,7 +23,7 @@ export default function StreamBroadcaster({ config, onStatusChange, autoPreview 
   const startPreview = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720, facingMode: 'environment' },
+        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: { ideal: 'user' } },
         audio: true,
       });
       if (videoRef.current) {
