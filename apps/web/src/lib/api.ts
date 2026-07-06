@@ -133,7 +133,7 @@ export const api = {
   search: {
     reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?q=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
     trending: (country: string) => fetchAPI(`/search/trending?country=${country}`),
-    suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?query=${encodeURIComponent(query)}&country=${country || 'NG'}`),
+    suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?q=${encodeURIComponent(query)}&country=${country || 'NG'}`),
   },
   elections: {
     feed: (country: string, election?: string, page = 1) => fetchAPI(`/elections/feed?country=${country}&election=${encodeURIComponent(election || '')}&page=${page}`),

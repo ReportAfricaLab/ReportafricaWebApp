@@ -4,21 +4,34 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
 const PERIODS = ['week', 'month', 'all'] as const;
+const COUNTRIES = [
+  { code: 'NG', name: 'Nigeria' }, { code: 'GH', name: 'Ghana' }, { code: 'KE', name: 'Kenya' },
+  { code: 'ZA', name: 'South Africa' }, { code: 'UG', name: 'Uganda' }, { code: 'RW', name: 'Rwanda' },
+  { code: 'TZ', name: 'Tanzania' }, { code: 'ET', name: 'Ethiopia' }, { code: 'SN', name: 'Senegal' },
+  { code: 'CM', name: 'Cameroon' }, { code: 'EG', name: 'Egypt' }, { code: 'MA', name: 'Morocco' },
+  { code: 'CI', name: "Côte d'Ivoire" }, { code: 'CD', name: 'DR Congo' }, { code: 'ZW', name: 'Zimbabwe' },
+];
 
 export default function LeaderboardPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [period, setPeriod] = useState<'week' | 'month' | 'all'>('week');
+  const [country, setCountry] = useState(user?.country || 'NG');
   const [data, setData] = useState<any[]>([]);
   const [myRank, setMyRank] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Sync country to user's country once auth loads
+  useEffect(() => {
+    if (user?.country) setCountry(user.country);
+  }, [user?.country]);
+
   useEffect(() => {
     setLoading(true);
-    api.leaderboard.getTop('NG', period).then(setData).finally(() => setLoading(false));
+    api.leaderboard.getTop(country, period).then(setData).finally(() => setLoading(false));
     if (token) {
-      api.leaderboard.getMyRank(token, 'NG', period).then(setMyRank).catch(() => {});
+      api.leaderboard.getMyRank(token, country, period).then(setMyRank).catch(() => {});
     }
-  }, [period, token]);
+  }, [period, country, token]);
 
   const getRankEmoji = (rank: number) => {
     if (rank === 1) return '🥇';
@@ -31,6 +44,15 @@ export default function LeaderboardPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">🏆 Leaderboard</h1>
       <p className="text-gray-500 text-sm mb-6">Top reporters in your country</p>
+
+      <div className="flex gap-2 mb-4">
+        <select value={country} onChange={(e) => setCountry(e.target.value)}
+          className="flex-1 px-3 py-2.5 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-[#0F7B6C]">
+          {COUNTRIES.map((c) => (
+            <option key={c.code} value={c.code}>{c.name}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="flex gap-2 mb-6">
         {PERIODS.map((p) => (
