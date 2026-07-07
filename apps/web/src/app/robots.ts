@@ -22,7 +22,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: ['/report', '/feed', '/elections'],
       },
     ],
-    sitemap: 'https://reportafrica.africa/sitemap.xml',
-    host: 'https://reportafrica.africa',
+    sitemap: 'https://www.reportafrica.africa/sitemap.xml',
+    host: 'https://www.reportafrica.africa',
   };
 }

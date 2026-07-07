@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'ReportAfrica' }],
   creator: 'ReportAfrica',
   publisher: 'ReportAfrica',
-  metadataBase: new URL('https://reportafrica.africa'),
+  metadataBase: new URL('https://www.reportafrica.africa'),
   alternates: { canonical: '/' },
   icons: { icon: '/icon.png', apple: '/icon.png' },
   manifest: '/manifest.json',

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
-const BASE_URL = 'https://reportafrica.africa';
+const BASE_URL = 'https://www.reportafrica.africa';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages
