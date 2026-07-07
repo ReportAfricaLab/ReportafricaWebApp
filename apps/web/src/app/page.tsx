@@ -12,8 +12,25 @@ export default function Home() {
     if (isAuthenticated) router.replace('/feed');
   }, [isAuthenticated, router]);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'ReportAfrica',
+    url: 'https://reportafrica.africa',
+    logo: 'https://reportafrica.africa/logo.png',
+    description: 'Africa\'s Citizen-Powered Live Reporting Platform. Real-time citizen journalism across 32+ African countries.',
+    sameAs: [
+      'https://twitter.com/reportafrica',
+      'https://www.instagram.com/reportafrica',
+      'https://www.linkedin.com/company/reportafrica',
+    ],
+    areaServed: { '@type': 'Place', name: 'Africa' },
+    foundingLocation: { '@type': 'Place', name: 'Africa' },
+  };
+
   return (
     <main className="min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Hero */}
       <section className="pt-12 sm:pt-20 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">

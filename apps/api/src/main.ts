@@ -21,6 +21,9 @@ async function bootstrap() {
     logger: isProduction ? ['error', 'warn', 'log'] : ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 
+  // Trust Cloudflare proxy — required for correct IP-based rate limiting
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+
   // Cookie parser (for httpOnly refresh token)
   app.use(cookieParser());
 
