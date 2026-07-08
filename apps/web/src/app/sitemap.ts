@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next';
+import { getAllArticleSlugs } from '../../sanity/queries';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
 const BASE_URL = 'https://www.reportafrica.africa';
@@ -23,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/press`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/media-licensing`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE_URL}/insights`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
   ];
 
   // Dynamic report pages
@@ -53,5 +55,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   } catch {}
 
-  return [...staticPages, ...reportPages, ...campaignPages];
+  // Dynamic insights/blog pages
+  let insightPages: MetadataRoute.Sitemap = [];
+  try {
+    const slugs = await getAllArticleSlugs();
+    insightPages = slugs.map((s: any) => ({
+      url: `${BASE_URL}/insights/${s.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch {}
+
+  return [...staticPages, ...reportPages, ...campaignPages, ...insightPages];
 }
