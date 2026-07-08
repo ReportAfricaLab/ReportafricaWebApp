@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@next/third-parties": "^14.1.0",
+    "@portabletext/react": "^6.2.0",
     "@reportafrica/shared": "*",
-    "@sentry/nextjs": "^8.45.0",
+    "@sanity/client": "^7.23.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sentry/nextjs": "^10.63.0",
     "amazon-ivs-web-broadcast": "^1.35.0",
     "hls.js": "^1.6.16",
     "livekit-client": "^2.19.1",
