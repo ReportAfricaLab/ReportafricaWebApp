@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 export default function Home() {
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -67,6 +65,20 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* About */}
+      <section className="py-12 px-4 bg-gray-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6">Africa&apos;s Citizen Journalism Network</h2>
+          <p className="text-gray-600 text-lg leading-relaxed">
+            ReportAfrica is a citizen-powered live reporting platform connecting communities across 32+ African countries.
+            From breaking news and traffic incidents to elections and humanitarian crises — ordinary citizens become the first reporters on the ground.
+            Our AI-powered verification system ensures accuracy, while our trust scoring rewards credible reporters.
+            Whether you&apos;re in Lagos, Nairobi, Accra, or Johannesburg, ReportAfrica gives your community a voice.
+            Join thousands of citizen journalists already reporting, verifying, and making a difference across the continent.
+          </p>
         </div>
       </section>
 

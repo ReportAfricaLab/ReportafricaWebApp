@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     default: 'ReportAfrica — Africa\'s Citizen-Powered Live Reporting Platform',
     template: '%s | ReportAfrica',
   },
-  description: 'Real-time citizen journalism, civic accountability, and community reporting platform built for Africa. Report incidents, go live, and keep your community informed.',
+  description: 'Real-time citizen journalism and community reporting platform built for Africa. Report incidents, go live, and keep your community informed.',
   keywords: ['citizen journalism', 'Africa', 'live reporting', 'civic accountability', 'community alerts', 'election monitoring', 'emergency reporting', 'Nigeria', 'Ghana', 'Kenya'],
   authors: [{ name: 'ReportAfrica' }],
   creator: 'ReportAfrica',
