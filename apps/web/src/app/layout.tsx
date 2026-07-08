@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   publisher: 'ReportAfrica',
   metadataBase: new URL('https://www.reportafrica.africa'),
   alternates: { canonical: '/' },
-  icons: { icon: '/icon.png', apple: '/icon.png' },
+  icons: { icon: '/favicon.ico', shortcut: '/favicon.ico', apple: '/icon.png' },
   manifest: '/manifest.json',
   openGraph: {
     type: 'website',
