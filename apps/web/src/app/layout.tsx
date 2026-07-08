@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { RTLWrapper } from '@/lib/rtl-wrapper';
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ServiceWorkerRegister />
         <PushNotificationRegister />
       </body>
+      <GoogleAnalytics gaId="G-30SE383K0X" />
     </html>
   );
 }
