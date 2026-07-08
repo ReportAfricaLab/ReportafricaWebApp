@@ -21,6 +21,11 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: 'Googlebot-News',
         allow: ['/report', '/feed', '/elections'],
       },
+      {
+        userAgent: ['GPTBot', 'ClaudeBot', 'Google-Extended', 'PerplexityBot', 'Bytespider'],
+        allow: '/',
+        disallow: ['/api/', '/profile/', '/notifications/', '/create-report/', '/payment/', '/auth/'],
+      },
     ],
     sitemap: 'https://www.reportafrica.africa/sitemap.xml',
     host: 'https://www.reportafrica.africa',

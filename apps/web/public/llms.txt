@@ -1,0 +1,39 @@
+# ReportAfrica
+
+> Africa's Citizen-Powered Live Reporting Platform
+
+ReportAfrica is a real-time citizen journalism and community reporting platform built for Africa. Ordinary citizens become first reporters on the ground — reporting traffic, emergencies, corruption, elections, and humanitarian crises instantly from their phones.
+
+## What ReportAfrica Does
+- Citizen incident reporting with photo, video, and live streaming
+- AI-powered content moderation and fake news verification
+- Real-time geo-based incident map across 32+ African countries
+- Election monitoring with parallel vote tabulation
+- Community Helping Hands — verified humanitarian fundraising campaigns
+- Media licensing marketplace for citizen-captured content
+- Government and NGO civic intelligence dashboards
+- Trust scoring system that rewards credible reporters
+- Anonymous reporting with identity protection and face blur
+- Emergency SOS with automatic location sharing
+
+## Who It's For
+- Citizens across Africa who want to report and stay informed
+- Journalists and media houses seeking verified citizen content
+- NGOs and humanitarian organizations monitoring crises
+- Government agencies tracking civic incidents
+- Election observers and monitoring bodies
+
+## Coverage
+32+ African countries including Nigeria, Ghana, Kenya, South Africa, Uganda, Rwanda, Tanzania, Ethiopia, Senegal, Cameroon, Egypt, Morocco, and more.
+
+## Key URLs
+- Platform: https://www.reportafrica.africa
+- Feed: https://www.reportafrica.africa/feed
+- Elections: https://www.reportafrica.africa/elections
+- Donations: https://www.reportafrica.africa/donations
+- Insights: https://www.reportafrica.africa/insights
+- Business: https://www.reportafrica.africa/business
+- Government: https://www.reportafrica.africa/government
+
+## Tech
+Mobile (React Native/Expo), Web (Next.js), Backend (NestJS), PostgreSQL + PostGIS, AWS S3, AWS IVS livestreaming, Mapbox, Paystack payments, Firebase notifications.
