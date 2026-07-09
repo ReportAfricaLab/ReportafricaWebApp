@@ -1,4 +1,9 @@
-export default function Home() {
+import { getAllArticles } from '../../sanity/queries';
+
+export default async function Home() {
+  const articles = await getAllArticles().catch(() => []);
+  const latestArticles = articles.slice(0, 3);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -21,6 +26,21 @@ export default function Home() {
       {/* Hero */}
       <section className="pt-12 sm:pt-20 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Topbar quick links */}
+          <div className="flex items-center justify-center gap-3 mb-8 flex-wrap">
+            {[
+              { href: '/feed', label: '📰 Feed' },
+              { href: '/live', label: '🔴 Live' },
+              { href: '/elections', label: '🗳️ Elections' },
+              { href: '/donations', label: '🤝 Helping Hands' },
+              { href: '/insights', label: '💡 Insights' },
+            ].map((link) => (
+              <a key={link.href} href={link.href}
+                className="px-4 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 rounded-full hover:border-[#0F7B6C] hover:text-[#0F7B6C] transition shadow-sm">
+                {link.label}
+              </a>
+            ))}
+          </div>
           <span className="inline-block px-3 py-1 text-xs font-semibold text-[#0F7B6C] bg-[#0F7B6C]/10 rounded-full mb-6">
             Africa&apos;s Real-Time Citizen Reporting Network
           </span>
@@ -81,6 +101,35 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Latest Insights */}
+      {latestArticles.length > 0 && (
+        <section className="py-16 px-4 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold">Latest from ReportAfrica</h2>
+              <a href="/insights" className="text-sm font-semibold text-[#0F7B6C] hover:underline">View all →</a>
+            </div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {latestArticles.map((article: any) => (
+                <a key={article.slug.current} href={`/insights/${article.slug.current}`}
+                  className="block bg-gray-50 rounded-xl p-5 hover:shadow-md hover:bg-white border border-gray-100 transition">
+                  {article.category?.title && (
+                    <span className="inline-block px-2 py-0.5 text-[10px] font-bold text-[#0F7B6C] bg-[#0F7B6C]/10 rounded-full mb-3 uppercase tracking-wide">
+                      {article.category.title}
+                    </span>
+                  )}
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">{article.title}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2">{article.excerpt}</p>
+                  <p className="text-[10px] text-gray-400 mt-3">
+                    {new Date(article.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="py-16 sm:py-20 px-4">

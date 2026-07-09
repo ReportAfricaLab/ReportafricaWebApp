@@ -103,6 +103,7 @@ export default function Navbar() {
   const guestNavLinks = [
     { href: '/feed', label: t('nav.feed', 'Feed') },
     { href: '/donations', label: t('nav.donations', 'Helping Hands') },
+    { href: '/insights', label: t('nav.insights', 'Insights') },
     { href: '/live', label: '🔴 ' + t('nav.live', 'Live') },
   ];
 
