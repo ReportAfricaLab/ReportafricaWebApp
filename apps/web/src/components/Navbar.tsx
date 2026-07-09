@@ -114,7 +114,7 @@ export default function Navbar() {
     { href: '/elections', label: t('nav.elections', 'Elections') },
     { href: '/media-licensing', label: t('nav.media', 'Media') },
     { href: '/map', label: t('nav.map', 'Map') },
-    { href: '/business', label: t('nav.business', 'Business') },
+    { href: '/insights', label: t('nav.insights', 'Insights') },
     { href: '/live', label: '🔴 ' + t('nav.live', 'Live') },
   ];
 
