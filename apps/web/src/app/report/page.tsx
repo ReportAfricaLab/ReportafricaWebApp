@@ -5,8 +5,8 @@ import Script from 'next/script';
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/[.\\/]+$/, '');
 const BASE_URL = 'https://www.reportafrica.africa';
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ id?: string }> }): Promise<Metadata> {
-  const { id } = await searchParams;
+export async function generateMetadata({ searchParams }: { searchParams: { id?: string } }): Promise<Metadata> {
+  const { id } = searchParams;
   if (!id) return { title: 'Report | ReportAfrica' };
 
   try {
@@ -55,8 +55,8 @@ async function getReport(id: string) {
   }
 }
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
-  const { id } = await searchParams;
+export default async function Page({ searchParams }: { searchParams: { id?: string } }) {
+  const { id } = searchParams;
   const report = id ? await getReport(id) : null;
 
   const jsonLd = report ? {
