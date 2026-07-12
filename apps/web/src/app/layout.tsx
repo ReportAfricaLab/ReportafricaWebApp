@@ -60,8 +60,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
         <ServiceWorkerRegister />
         <PushNotificationRegister />
+        <GoogleAnalytics gaId="G-30SE383K0X" />
       </body>
-      <GoogleAnalytics gaId="G-30SE383K0X" />
     </html>
   );
 }

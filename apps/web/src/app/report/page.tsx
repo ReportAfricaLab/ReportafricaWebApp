@@ -30,9 +30,7 @@ export async function generateMetadata({ searchParams }: { searchParams: { id?: 
         siteName: 'ReportAfrica',
         publishedTime: report.createdAt,
         modifiedTime: report.updatedAt,
-        authors: [report.author?.displayName || 'ReportAfrica Contributor'],
-        tags: [report.category, report.country, 'Africa', 'citizen journalism'],
-      },
+      } as any,
       twitter: {
         card: 'summary_large_image',
         title: report.aiHeadline || report.title,
