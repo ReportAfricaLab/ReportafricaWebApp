@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export const revalidate = 300;
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/\/+$/, '');
+const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1').replace(/\/+$/, '');
 
 export const metadata: Metadata = {
   title: 'Insights — Citizen Journalism Reports & Guides',
