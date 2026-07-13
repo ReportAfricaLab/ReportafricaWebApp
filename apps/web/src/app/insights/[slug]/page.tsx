@@ -1,28 +1,43 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { PortableText } from '@portabletext/react';
-import { getArticleBySlug, getAllArticleSlugs, getRelatedArticles } from '../../../../sanity/queries';
-import { urlFor } from '../../../../sanity/client';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/\/+$/, '');
 const BASE_URL = 'https://www.reportafrica.africa';
 
-export async function generateStaticParams() {
-  const slugs = await getAllArticleSlugs();
-  return slugs.map((s: any) => ({ slug: s.slug }));
+async function getPost(slug: string) {
+  try {
+    const res = await fetch(`${API_URL}/insights/posts/${slug}`, { next: { revalidate: 300 } });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function getRelatedPosts(slug: string, tags: string[]) {
+  try {
+    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=4`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const all = Array.isArray(data) ? data : (data.posts ?? []);
+    return all.filter((p: any) => p.slug !== slug).slice(0, 3);
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const article = await getArticleBySlug(params.slug);
-  if (!article) return {};
+  const post = await getPost(params.slug);
+  if (!post) return {};
 
-  const title = article.seoTitle || article.title;
-  const description = article.seoDescription || article.excerpt;
-  const imageUrl = article.mainImage ? urlFor(article.mainImage).width(1200).height(630).url() : `${BASE_URL}/logo.png`;
+  const title = post.seo_title || post.title;
+  const description = post.seo_description || post.excerpt;
+  const imageUrl = post.cover_image_url || `${BASE_URL}/logo.png`;
 
   return {
     title,
@@ -33,8 +48,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description,
       url: `${BASE_URL}/insights/${params.slug}`,
       type: 'article',
-      publishedTime: article.publishedAt,
-      authors: [article.author?.name],
       images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
@@ -42,23 +55,20 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = await getArticleBySlug(params.slug);
-  if (!article) notFound();
+  const post = await getPost(params.slug);
+  if (!post || post.status !== 'published') notFound();
 
-  const related = article.category
-    ? await getRelatedArticles(article.category.slug.current, params.slug)
-    : [];
-
-  const imageUrl = article.mainImage ? urlFor(article.mainImage).width(1200).height(630).url() : `${BASE_URL}/logo.png`;
+  const related = await getRelatedPosts(params.slug, post.tags ?? []);
+  const imageUrl = post.cover_image_url || `${BASE_URL}/logo.png`;
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
-    headline: article.title,
-    description: article.excerpt,
+    headline: post.title,
+    description: post.excerpt,
     image: imageUrl,
-    datePublished: article.publishedAt,
-    author: { '@type': 'Person', name: article.author?.name || 'ReportAfrica' },
+    datePublished: post.published_at || post.created_at,
+    author: { '@type': 'Person', name: post.author || 'ReportAfrica' },
     publisher: {
       '@type': 'Organization',
       name: 'ReportAfrica',
@@ -72,34 +82,33 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <article className="max-w-3xl mx-auto">
-        {article.category && (
+        {post.tags?.length > 0 && (
           <span className="text-xs font-semibold text-[#0F7B6C] uppercase tracking-wide">
-            {article.category.title}
+            {post.tags[0]}
           </span>
         )}
 
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-4">{article.title}</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mt-2 mb-4">{post.title}</h1>
 
         <div className="flex items-center gap-3 text-sm text-gray-500 mb-8">
-          {article.author?.name && <span>By {article.author.name}</span>}
-          {article.publishedAt && (
-            <span>{new Date(article.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-          )}
+          {post.author && <span>By {post.author}</span>}
+          <span>{new Date(post.published_at || post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
         </div>
 
-        {article.mainImage && (
+        {post.cover_image_url && (
           <div className="relative w-full h-64 sm:h-96 rounded-2xl overflow-hidden mb-10 bg-gray-100">
-            <Image src={imageUrl} alt={article.title} fill className="object-cover" priority />
+            <Image src={imageUrl} alt={post.title} fill className="object-cover" priority />
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none text-gray-700">
-          {article.body && <PortableText value={article.body} />}
-        </div>
+        <div
+          className="prose prose-lg max-w-none text-gray-700"
+          dangerouslySetInnerHTML={{ __html: post.body }}
+        />
 
-        {article.tags?.length > 0 && (
+        {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-8">
-            {article.tags.map((tag: string) => (
+            {post.tags.map((tag: string) => (
               <span key={tag} className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">{tag}</span>
             ))}
           </div>

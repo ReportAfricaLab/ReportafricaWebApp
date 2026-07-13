@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllArticles } from '../../../sanity/queries';
-import { urlFor } from '../../../sanity/client';
 
-export const revalidate = 3600;
+export const revalidate = 300;
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/\/+$/, '');
 
 export const metadata: Metadata = {
   title: 'Insights — Citizen Journalism Reports & Guides',
@@ -12,8 +12,19 @@ export const metadata: Metadata = {
   alternates: { canonical: '/insights' },
 };
 
+async function getAllPosts() {
+  try {
+    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=50`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.posts ?? []);
+  } catch {
+    return [];
+  }
+}
+
 export default async function InsightsPage() {
-  const articles = await getAllArticles();
+  const posts = await getAllPosts();
 
   return (
     <main className="min-h-screen py-16 px-4">
@@ -25,34 +36,34 @@ export default async function InsightsPage() {
           </p>
         </div>
 
-        {articles.length === 0 ? (
+        {posts.length === 0 ? (
           <p className="text-center text-gray-500">No articles published yet. Check back soon.</p>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {articles.map((article: any) => (
-              <Link key={article._id} href={`/insights/${article.slug.current}`} className="group block rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition">
-                {article.mainImage && (
+            {posts.map((post: any) => (
+              <Link key={post.id} href={`/insights/${post.slug}`} className="group block rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition">
+                {post.cover_image_url && (
                   <div className="relative h-48 w-full bg-gray-100">
                     <Image
-                      src={urlFor(article.mainImage).width(600).height(400).url()}
-                      alt={article.title}
+                      src={post.cover_image_url}
+                      alt={post.title}
                       fill
                       className="object-cover group-hover:scale-105 transition duration-300"
                     />
                   </div>
                 )}
                 <div className="p-5">
-                  {article.category && (
+                  {post.tags?.length > 0 && (
                     <span className="text-xs font-semibold text-[#0F7B6C] uppercase tracking-wide">
-                      {article.category.title}
+                      {post.tags[0]}
                     </span>
                   )}
                   <h2 className="text-lg font-bold text-gray-900 mt-1 mb-2 group-hover:text-[#0F7B6C] transition">
-                    {article.title}
+                    {post.title}
                   </h2>
-                  <p className="text-sm text-gray-600 line-clamp-2">{article.excerpt}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{post.excerpt}</p>
                   <p className="text-xs text-gray-400 mt-3">
-                    {new Date(article.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(post.published_at || post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
               </Link>
