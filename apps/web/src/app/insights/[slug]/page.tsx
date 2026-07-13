@@ -4,14 +4,14 @@ import { notFound } from 'next/navigation';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1').replace(/\/+$/, '');
 const BASE_URL = 'https://www.reportafrica.africa';
 
 async function getPost(slug: string) {
   try {
-    const res = await fetch(`${API_URL}/insights/posts/${slug}`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_URL}/insights/posts/${slug}`, { cache: 'no-store' });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -21,7 +21,7 @@ async function getPost(slug: string) {
 
 async function getRelatedPosts(slug: string, tags: string[]) {
   try {
-    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=4`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=4`, { cache: 'no-store' });
     if (!res.ok) return [];
     const data = await res.json();
     const all = Array.isArray(data) ? data : (data.posts ?? []);
