@@ -14,11 +14,19 @@ export const metadata: Metadata = {
 
 async function getAllPosts() {
   try {
-    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=50`, { cache: 'no-store' });
-    if (!res.ok) return [];
+    const url = `${API_URL}/insights/posts?status=published&limit=50`;
+    const res = await fetch(url, { cache: 'no-store' });
+    console.log('[insights] fetch status:', res.status, 'url:', url);
+    if (!res.ok) {
+      const text = await res.text();
+      console.log('[insights] fetch error body:', text.substring(0, 200));
+      return [];
+    }
     const data = await res.json();
+    console.log('[insights] posts count:', Array.isArray(data) ? data.length : data?.posts?.length);
     return Array.isArray(data) ? data : (data.posts ?? []);
-  } catch {
+  } catch (e: any) {
+    console.log('[insights] fetch exception:', e.message);
     return [];
   }
 }
