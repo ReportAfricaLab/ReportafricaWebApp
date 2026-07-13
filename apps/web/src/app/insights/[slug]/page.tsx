@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { marked } from 'marked';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
@@ -103,7 +104,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
         <div
           className="prose prose-lg max-w-none text-gray-700"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: marked.parse(post.body || '') as string }}
         />
 
         {post.tags?.length > 0 && (
