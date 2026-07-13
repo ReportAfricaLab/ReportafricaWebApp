@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1').replace(/\/+$/, '');
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 async function getAllPosts() {
   try {
-    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=50`, { next: { revalidate: 300 } });
+    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=50`, { cache: 'no-store' });
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : (data.posts ?? []);
