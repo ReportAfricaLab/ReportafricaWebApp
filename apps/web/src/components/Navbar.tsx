@@ -130,6 +130,10 @@ export default function Navbar() {
     { href: '/watchlist', icon: '📍', label: 'Watchlists' },
     { href: '/referral', icon: '🎁', label: 'Referral' },
     { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    { href: '/bounty', icon: '🎯', label: 'Bounty Board' },
+    { href: '/assignments', icon: '📋', label: 'Assignment Desk' },
+    { href: '/fan-subscriptions', icon: '⭐', label: 'Fan Subscriptions' },
+    { href: '/marketplace', icon: '🛒', label: 'Reporter Marketplace' },
     ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
   ];
 
@@ -143,6 +147,10 @@ export default function Navbar() {
     { href: '/watchlist', icon: '📍', label: 'Watchlists' },
     { href: '/referral', icon: '🎁', label: 'Referral' },
     { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    { href: '/bounty', icon: '🎯', label: 'Bounty Board' },
+    { href: '/assignments', icon: '📋', label: 'Assignment Desk' },
+    { href: '/fan-subscriptions', icon: '⭐', label: 'Fan Subscriptions' },
+    { href: '/marketplace', icon: '🛒', label: 'Reporter Marketplace' },
     { href: '/challenges', icon: '💰', label: 'Promo Gigs' },
     { href: '/business', icon: '🏪', label: 'Business' },
     { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
@@ -194,7 +202,7 @@ export default function Navbar() {
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute right-0 top-12 w-64 bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-2 z-50">
+                  <div className="absolute right-0 top-12 w-64 bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-2 z-50 max-h-[75vh] overflow-y-auto">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{user?.username || 'Reporter'}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.username}</p>
