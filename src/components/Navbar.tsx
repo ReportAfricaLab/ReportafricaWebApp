@@ -130,6 +130,10 @@ export default function Navbar() {
     { href: '/watchlist', icon: '📍', label: 'Watchlists' },
     { href: '/referral', icon: '🎁', label: 'Referral' },
     { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    { href: '/bounty', icon: '🎯', label: 'Bounty Board' },
+    { href: '/assignments', icon: '📋', label: 'Assignment Desk' },
+    { href: '/fan-subscriptions', icon: '⭐', label: 'Fan Subscriptions' },
+    { href: '/marketplace', icon: '🛒', label: 'Reporter Marketplace' },
     ...(userProfile.role === 'admin' ? [{ href: 'https://admin.reportafrica.africa', icon: '⚙️', label: 'Admin Panel' }] : []),
   ];
 
@@ -143,6 +147,10 @@ export default function Navbar() {
     { href: '/watchlist', icon: '📍', label: 'Watchlists' },
     { href: '/referral', icon: '🎁', label: 'Referral' },
     { href: '/profile/licenses', icon: '📄', label: 'Licenses' },
+    { href: '/bounty', icon: '🎯', label: 'Bounty Board' },
+    { href: '/assignments', icon: '📋', label: 'Assignment Desk' },
+    { href: '/fan-subscriptions', icon: '⭐', label: 'Fan Subscriptions' },
+    { href: '/marketplace', icon: '🛒', label: 'Reporter Marketplace' },
     { href: '/challenges', icon: '💰', label: 'Promo Gigs' },
     { href: '/business', icon: '🏪', label: 'Business' },
     { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
