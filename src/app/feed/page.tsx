@@ -53,6 +53,10 @@ const NAV_LINKS = [
   { href: '/safe-trip', icon: '🛡️', label: 'Safe Trip' },
   { href: '/government', icon: '🏛️', label: 'For Government' },
   { href: 'https://observers.reportafrica.africa', icon: '🗳️', label: 'Election Observers' },
+  { href: '/bounty', icon: '🎯', label: 'Bounty Board' },
+  { href: '/assignments', icon: '📋', label: 'Assignment Desk' },
+  { href: '/fan-subscriptions', icon: '⭐', label: 'Fan Subscriptions' },
+  { href: '/marketplace', icon: '🛒', label: 'Reporter Marketplace' },
 ];
 
 function SponsoredPost({ business }: { business?: any }) {
@@ -189,6 +193,18 @@ export default function FeedPage() {
                 </Link>
                 <Link href="/referral" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
                   <span>🎁</span><span>Referral</span>
+                </Link>
+                <Link href="/bounty" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
+                  <span>🎯</span><span>Bounty Board</span>
+                </Link>
+                <Link href="/assignments" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
+                  <span>📋</span><span>Assignment Desk</span>
+                </Link>
+                <Link href="/fan-subscriptions" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
+                  <span>⭐</span><span>Fan Subscriptions</span>
+                </Link>
+                <Link href="/marketplace" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
+                  <span>🛒</span><span>Reporter Marketplace</span>
                 </Link>
               </>
             )}

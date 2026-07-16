@@ -202,7 +202,7 @@ export default function Navbar() {
                 </button>
 
                 {showDropdown && (
-                  <div className="absolute right-0 top-12 w-64 bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-2 z-50 max-h-[80vh] overflow-y-auto">
+                  <div className="absolute right-0 top-12 w-64 bg-white dark:bg-[#1E293B] rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg py-2 z-50 max-h-[75vh] overflow-y-auto">
                     <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                       <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{user?.username || 'Reporter'}</p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">@{user?.username}</p>
