@@ -172,4 +172,28 @@ export const api = {
     create: (token: string, body: { reportId: string; amount: number; email: string; message?: string }) => fetchAPI('/tips', { method: 'POST', body: JSON.stringify(body), token }),
     getByReport: (reportId: string) => fetchAPI(`/tips/report/${reportId}`),
   },
+  bounty: {
+    getFeed: (country: string) => fetchAPI(`/bounties/feed?country=${country}`),
+    claim: (token: string, id: string) => fetchAPI(`/bounties/${id}/claim`, { method: 'POST', token }),
+  },
+  assignment: {
+    getFeed: (country: string) => fetchAPI(`/assignments/feed?country=${country}`),
+    claim: (token: string, id: string) => fetchAPI(`/assignments/${id}/claim`, { method: 'POST', token }),
+    submit: (token: string, id: string, reportId: string) => fetchAPI(`/assignments/${id}/submit`, { method: 'POST', body: JSON.stringify({ reportId }), token }),
+  },
+  fanSub: {
+    mySubscriptions: (token: string) => fetchAPI('/fan-subscriptions/my-subscriptions', { token }),
+    mySubscribers: (token: string) => fetchAPI('/fan-subscriptions/my-subscribers', { token }),
+    cancel: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/${reporterId}/cancel`, { method: 'DELETE', token }),
+  },
+  marketplace: {
+    browse: (country: string) => fetchAPI(`/reporter-marketplace/browse?country=${country}`),
+    getProfile: (userId: string) => fetchAPI(`/reporter-marketplace/profile/${userId}`),
+    upsertProfile: (token: string, body: any) => fetchAPI('/reporter-marketplace/profile', { method: 'POST', body: JSON.stringify(body), token }),
+    requestCommission: (token: string, reporterId: string, body: any) => fetchAPI(`/reporter-marketplace/${reporterId}/commission`, { method: 'POST', body: JSON.stringify(body), token }),
+    myReporterCommissions: (token: string) => fetchAPI('/reporter-marketplace/commissions/reporter', { token }),
+    myClientCommissions: (token: string) => fetchAPI('/reporter-marketplace/commissions/client', { token }),
+    acceptCommission: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commissions/${id}/accept`, { method: 'PATCH', token }),
+    approveWork: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commissions/${id}/approve`, { method: 'PATCH', token }),
+  },
 };
