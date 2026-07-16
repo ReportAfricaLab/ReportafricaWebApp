@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-const VAPID_KEY = 'BOTcmaIYj2u7rzz5xKUYEvPCJl1xrVKjXWLcW2IvSIL2ZVlaz8_R6mQs57_C2SN9wwZIE-53J8XiuAXZSnHa8aw';
+const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || '';
 
 export function PushNotificationRegister() {
   useEffect(() => {
@@ -44,10 +44,10 @@ async function initPush(authToken: string) {
     // Initialize Firebase (only once)
     if (!fb.apps?.length) {
       fb.initializeApp({
-        apiKey: 'AIzaSyAOW3f4T7PPsvZ3N-itDriSpSxxDDFQ4s4',
-        projectId: 'reportafrica-4b7bf',
-        messagingSenderId: '446848946760',
-        appId: '1:446848946760:android:ee772b55a084e2ee0d7e7d',
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
       });
     }
 
