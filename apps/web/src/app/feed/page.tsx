@@ -194,18 +194,6 @@ export default function FeedPage() {
                 <Link href="/referral" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
                   <span>🎁</span><span>Referral</span>
                 </Link>
-                <Link href="/bounty" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
-                  <span>🎯</span><span>Bounty Board</span>
-                </Link>
-                <Link href="/assignments" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
-                  <span>📋</span><span>Assignment Desk</span>
-                </Link>
-                <Link href="/fan-subscriptions" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
-                  <span>⭐</span><span>Fan Subscriptions</span>
-                </Link>
-                <Link href="/marketplace" className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-white hover:shadow-sm transition">
-                  <span>🛒</span><span>Reporter Marketplace</span>
-                </Link>
               </>
             )}
           </div>
