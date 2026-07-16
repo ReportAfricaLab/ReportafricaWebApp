@@ -1,0 +1,67 @@
+import type { Metadata, Viewport } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
+import './globals.css';
+import { AuthProvider } from '@/lib/auth-context';
+import { RTLWrapper } from '@/lib/rtl-wrapper';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister';
+import { PushNotificationRegister } from '@/components/PushNotificationRegister';
+
+export const viewport: Viewport = {
+  themeColor: '#0F7B6C',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
+export const metadata: Metadata = {
+  title: {
+    default: 'ReportAfrica — Africa\'s Citizen-Powered Live Reporting Platform',
+    template: '%s | ReportAfrica',
+  },
+  description: 'Real-time citizen journalism and community reporting platform built for Africa. Report incidents, go live, and keep your community informed.',
+  keywords: ['citizen journalism', 'Africa', 'live reporting', 'civic accountability', 'community alerts', 'election monitoring', 'emergency reporting', 'Nigeria', 'Ghana', 'Kenya'],
+  authors: [{ name: 'ReportAfrica' }],
+  creator: 'ReportAfrica',
+  publisher: 'ReportAfrica',
+  metadataBase: new URL('https://www.reportafrica.africa'),
+  alternates: { canonical: '/' },
+  icons: { icon: '/favicon.ico', shortcut: '/favicon.ico', apple: '/icon.png' },
+  manifest: '/manifest.json',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://reportafrica.africa',
+    siteName: 'ReportAfrica',
+    title: 'ReportAfrica — Africa\'s Citizen-Powered Live Reporting Platform',
+    description: 'Real-time citizen journalism, civic accountability, and community reporting platform built for Africa.',
+    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'ReportAfrica' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ReportAfrica — Africa\'s Citizen-Powered Live Reporting Platform',
+    description: 'Real-time citizen journalism, civic accountability, and community reporting platform built for Africa.',
+    images: ['/logo.png'],
+  },
+  robots: { index: true, follow: true },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-[#F8FAFC] dark:bg-[#0F172A] text-gray-900 dark:text-gray-100 antialiased min-h-screen">
+        <AuthProvider>
+          <RTLWrapper>
+            <Navbar />
+            <main className="pt-20">{children}</main>
+            <Footer />
+          </RTLWrapper>
+        </AuthProvider>
+        <ServiceWorkerRegister />
+        <PushNotificationRegister />
+      </body>
+      <GoogleAnalytics gaId="G-30SE383K0X" />
+    </html>
+  );
+}

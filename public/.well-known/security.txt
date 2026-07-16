@@ -1,0 +1,5 @@
+Contact: mailto:security@reportafrica.africa
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://www.reportafrica.africa/.well-known/security.txt
+Policy: https://www.reportafrica.africa/privacy

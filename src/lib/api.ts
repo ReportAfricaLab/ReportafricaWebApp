@@ -1,0 +1,209 @@
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1').replace(/[.\\/]+$/, '');
+
+interface FetchOptions extends RequestInit {
+  token?: string;
+  _retried?: boolean;
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  try {
+    // No localStorage read — refresh token is httpOnly cookie, sent automatically
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken: '' }),
+      credentials: 'include',
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.token) {
+      localStorage.setItem('ra_token', data.token);
+      return data.token;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function clearAuthAndRedirect() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('ra_token');
+  localStorage.removeItem('ra_user');
+  // ra_refresh no longer in localStorage — nothing to remove
+  if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+    const returnTo = window.location.pathname + window.location.search;
+    sessionStorage.setItem('ra_return_to', returnTo);
+    window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
+  }
+}
+
+async function fetchAPI(endpoint: string, options: FetchOptions = {}) {
+  const { token, _retried, ...fetchOpts } = options;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}${endpoint}`, { ...fetchOpts, headers });
+
+  // Auto-refresh on 401 (only once to prevent loops)
+  if (res.status === 401 && token && !_retried) {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      // Retry with new token
+      return fetchAPI(endpoint, { ...options, token: newToken, _retried: true });
+    }
+    // Refresh failed — session expired
+    clearAuthAndRedirect();
+    throw new Error('Session expired. Please log in again.');
+  }
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Request failed');
+  return data;
+}
+
+export const api = {
+  auth: {
+    register: (body: { email: string; username: string; displayName: string; password: string; country: string; phone?: string }) =>
+      fetchAPI('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+    login: (body: { email: string; password: string }) =>
+      fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+    oauth: (provider: string, token: string, country?: string) =>
+      fetchAPI('/auth/oauth', { method: 'POST', body: JSON.stringify({ provider, token, country }) }),
+    forgotPassword: (email: string) =>
+      fetchAPI('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    resetPassword: (token: string, newPassword: string) =>
+      fetchAPI('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
+  },
+  users: {
+    me: (token: string) => fetchAPI('/users/me', { token }),
+  },
+  reports: {
+    feed: (country: string, page = 1, lat?: number, lng?: number) => {
+      let url = `/reports/feed?country=${country}&page=${page}`;
+      if (lat && lng) url += `&lat=${lat}&lng=${lng}`;
+      return fetchAPI(url);
+    },
+    nearby: (lat: number, lng: number, radius = 10) => fetchAPI(`/reports/nearby?lat=${lat}&lng=${lng}&radius=${radius}`),
+    byCategory: (country: string, category: string, page = 1) => fetchAPI(`/reports/category/${category}?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/reports/${id}`),
+    create: (token: string, body: any) => fetchAPI('/reports', { method: 'POST', body: JSON.stringify(body), token }),
+    upvote: (token: string, id: string) => fetchAPI(`/reports/${id}/upvote`, { method: 'PATCH', token }),
+    downvote: (token: string, id: string) => fetchAPI(`/reports/${id}/downvote`, { method: 'PATCH', token }),
+  },
+  donations: {
+    campaignFeed: (country: string, page = 1) => fetchAPI(`/donations/campaigns/feed?country=${country}&page=${page}`),
+    emergency: (country: string) => fetchAPI(`/donations/campaigns/emergency?country=${country}`),
+    byCategory: (country: string, category: string, page = 1) => fetchAPI(`/donations/campaigns/category/${category}?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/donations/campaigns/${id}`),
+    getDonations: (id: string, page = 1) => fetchAPI(`/donations/campaigns/${id}/donations?page=${page}`),
+    create: (token: string, body: any) => fetchAPI('/donations/campaigns', { method: 'POST', body: JSON.stringify(body), token }),
+    donate: (token: string, id: string, body: any) => fetchAPI(`/donations/campaigns/${id}/donate`, { method: 'POST', body: JSON.stringify(body), token }),
+    verify: (reference: string) => fetchAPI(`/donations/verify/${reference}`),
+  },
+  licensing: {
+    request: (token: string, body: any) => fetchAPI('/media-licensing/request', { method: 'POST', body: JSON.stringify(body), token }),
+    myRequests: (token: string, page = 1) => fetchAPI(`/media-licensing/my-requests?page=${page}`, { token }),
+    incoming: (token: string, page = 1) => fetchAPI(`/media-licensing/incoming?page=${page}`, { token }),
+    respond: (token: string, id: string, action: string) => fetchAPI(`/media-licensing/${id}/respond`, { method: 'PATCH', body: JSON.stringify({ action }), token }),
+    pay: (token: string, id: string, body: any) => fetchAPI(`/media-licensing/${id}/pay`, { method: 'POST', body: JSON.stringify(body), token }),
+  },
+  earnings: {
+    list: (token: string, page = 1) => fetchAPI(`/earnings?page=${page}`, { token }),
+    stats: (token: string) => fetchAPI('/earnings/stats', { token }),
+  },
+  livestream: {
+    create: (token: string, body: any) => fetchAPI('/livestream/create', { method: 'POST', body: JSON.stringify(body), token }),
+    goLive: (token: string, id: string) => fetchAPI(`/livestream/${id}/go-live`, { method: 'PATCH', token }),
+    end: (token: string, id: string) => fetchAPI(`/livestream/${id}/end`, { method: 'PATCH', token }),
+    getLive: (country: string, page = 1) => fetchAPI(`/livestream/live?country=${country}&page=${page}`),
+    getRecordings: (country: string, page = 1) => fetchAPI(`/livestream/recordings?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/livestream/${id}`),
+    myStreams: (token: string) => fetchAPI('/livestream/my/streams', { token }),
+  },
+  upload: {
+    getPresignedUrl: (token: string, fileType: string, contentType: string) =>
+      fetchAPI('/upload/presigned-url', { method: 'POST', body: JSON.stringify({ fileType, contentType }), token }),
+  },
+  search: {
+    reports: (query: string, country?: string, page = 1) => fetchAPI(`/search/reports?q=${encodeURIComponent(query)}&country=${country || 'NG'}&page=${page}`),
+    trending: (country: string) => fetchAPI(`/search/trending?country=${country}`),
+    suggestions: (query: string, country?: string) => fetchAPI(`/search/suggestions?q=${encodeURIComponent(query)}&country=${country || 'NG'}`),
+  },
+  elections: {
+    feed: (country: string, election?: string, page = 1) => fetchAPI(`/elections/feed?country=${country}&election=${encodeURIComponent(election || '')}&page=${page}`),
+    incidents: (country: string, page = 1) => fetchAPI(`/elections/incidents?country=${country}&page=${page}`),
+    results: (country: string, election: string, state?: string) => fetchAPI(`/elections/results?country=${country}&election=${encodeURIComponent(election)}${state ? `&state=${state}` : ''}`),
+    hotspots: (country: string, election: string) => fetchAPI(`/elections/hotspots?country=${country}&election=${encodeURIComponent(election)}`),
+    submit: (token: string, body: any) => fetchAPI('/elections/report', { method: 'POST', body: JSON.stringify(body), token }),
+    live: (country: string, election?: string) => fetchAPI(`/elections/live?country=${country}${election ? `&election=${encodeURIComponent(election)}` : ''}`),
+  },
+  comments: {
+    getByReport: (reportId: string, page = 1) => fetchAPI(`/comments/report/${reportId}?page=${page}`),
+    create: (token: string, body: { reportId: string; text: string; parentId?: string }) => fetchAPI('/comments', { method: 'POST', body: JSON.stringify(body), token }),
+    delete: (token: string, id: string) => fetchAPI(`/comments/${id}`, { method: 'DELETE', token }),
+    like: (token: string, id: string) => fetchAPI(`/comments/${id}/like`, { method: 'PATCH', token }),
+  },
+  follows: {
+    follow: (token: string, userId: string) => fetchAPI(`/follows/${userId}`, { method: 'POST', token }),
+    unfollow: (token: string, userId: string) => fetchAPI(`/follows/${userId}`, { method: 'DELETE', token }),
+    isFollowing: (token: string, userId: string) => fetchAPI(`/follows/check/${userId}`, { token }),
+    getFollowers: (userId: string, page = 1) => fetchAPI(`/follows/${userId}/followers?page=${page}`),
+    getFollowing: (userId: string, page = 1) => fetchAPI(`/follows/${userId}/following?page=${page}`),
+    getCounts: (userId: string) => fetchAPI(`/follows/${userId}/counts`),
+    getFeed: (token: string, page = 1) => fetchAPI(`/follows/feed?page=${page}`, { token }),
+  },
+  leaderboard: {
+    getTop: (country: string, period = 'week', limit = 20) => fetchAPI(`/leaderboard?country=${country}&period=${period}&limit=${limit}`),
+    getMyRank: (token: string, country: string, period = 'week') => fetchAPI(`/leaderboard/me?country=${country}&period=${period}`, { token }),
+  },
+  watchlist: {
+    getAll: (token: string) => fetchAPI('/watchlist', { token }),
+    create: (token: string, body: { name: string; latitude: number; longitude: number; radiusKm?: number; categories?: string[] }) => fetchAPI('/watchlist', { method: 'POST', body: JSON.stringify(body), token }),
+    update: (token: string, id: string, body: any) => fetchAPI(`/watchlist/${id}`, { method: 'PATCH', body: JSON.stringify(body), token }),
+    delete: (token: string, id: string) => fetchAPI(`/watchlist/${id}`, { method: 'DELETE', token }),
+  },
+  tips: {
+    create: (token: string, body: { reportId: string; amount: number; email: string; message?: string }) => fetchAPI('/tips', { method: 'POST', body: JSON.stringify(body), token }),
+    getByReport: (reportId: string) => fetchAPI(`/tips/report/${reportId}`),
+  },
+  bounty: {
+    getFeed: (country: string, page = 1) => fetchAPI(`/bounty/feed?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/bounty/${id}`),
+    claim: (token: string, id: string) => fetchAPI(`/bounty/${id}/claim`, { method: 'POST', token }),
+  },
+  assignment: {
+    getFeed: (country: string, page = 1) => fetchAPI(`/assignment-desk/feed?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/assignment-desk/${id}`),
+    claim: (token: string, id: string) => fetchAPI(`/assignment-desk/${id}/claim`, { method: 'POST', token }),
+    submit: (token: string, id: string, reportId: string) => fetchAPI(`/assignment-desk/${id}/submit`, { method: 'POST', body: JSON.stringify({ reportId }), token }),
+  },
+  fanSub: {
+    getPlans: (reporterId: string, country: string) => fetchAPI(`/fan-subscriptions/plans/${reporterId}?country=${country}`),
+    subscribe: (token: string, reporterId: string, body: { tier: string; email: string }) => fetchAPI(`/fan-subscriptions/${reporterId}`, { method: 'POST', body: JSON.stringify(body), token }),
+    cancel: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/${reporterId}`, { method: 'DELETE', token }),
+    mySubscriptions: (token: string, page = 1) => fetchAPI(`/fan-subscriptions/my/subscriptions?page=${page}`, { token }),
+    mySubscribers: (token: string, page = 1) => fetchAPI(`/fan-subscriptions/my/subscribers?page=${page}`, { token }),
+    isSubscribed: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/check/${reporterId}`, { token }),
+  },
+  marketplace: {
+    browse: (country?: string, beat?: string, page = 1) => fetchAPI(`/reporter-marketplace?${country ? `country=${country}&` : ''}${beat ? `beat=${beat}&` : ''}page=${page}`),
+    getProfile: (reporterId: string) => fetchAPI(`/reporter-marketplace/profile/${reporterId}`),
+    upsertProfile: (token: string, body: any) => fetchAPI('/reporter-marketplace/profile', { method: 'POST', body: JSON.stringify(body), token }),
+    requestCommission: (token: string, reporterId: string, body: any) => fetchAPI(`/reporter-marketplace/commission/${reporterId}`, { method: 'POST', body: JSON.stringify(body), token }),
+    acceptCommission: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commission/${id}/accept`, { method: 'PATCH', token }),
+    submitWork: (token: string, id: string, body: any) => fetchAPI(`/reporter-marketplace/commission/${id}/submit`, { method: 'PATCH', body: JSON.stringify(body), token }),
+    approveWork: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commission/${id}/approve`, { method: 'PATCH', token }),
+    rejectWork: (token: string, id: string, reason: string) => fetchAPI(`/reporter-marketplace/commission/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }), token }),
+    myReporterCommissions: (token: string, page = 1) => fetchAPI(`/reporter-marketplace/my/reporter-commissions?page=${page}`, { token }),
+    myClientCommissions: (token: string, page = 1) => fetchAPI(`/reporter-marketplace/my/client-commissions?page=${page}`, { token }),
+  },
+  ticket: {
+    setPrice: (token: string, streamId: string, body: { price: number; currency: string }) => fetchAPI(`/livestream/${streamId}/ticket-price`, { method: 'PATCH', body: JSON.stringify(body), token }),
+    purchase: (token: string, streamId: string, email: string) => fetchAPI(`/livestream/${streamId}/purchase-ticket`, { method: 'POST', body: JSON.stringify({ email }), token }),
+    checkAccess: (token: string, streamId: string) => fetchAPI(`/livestream/${streamId}/ticket-access`, { token }),
+  },
+};
