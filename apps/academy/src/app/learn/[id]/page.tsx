@@ -69,7 +69,7 @@ function LearnContent() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const passedData = await passedRes.json();
-        setQuizPassed(!!passedData?.passed ?? !!passedData);
+        setQuizPassed(passedData?.passed === true || passedData === true);
       })
       .catch(() => {});
   }, [lessonIndex, course, enrollment]);
