@@ -6,6 +6,13 @@ import { getLocalPrice } from '@/lib/courses';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch { return true; }
+}
+
 function CourseDetailContent() {
   const { id } = useParams();
   const router = useRouter();
@@ -78,8 +85,13 @@ function CourseDetailContent() {
   }, [id, isBundle, reference]);
 
   const handlePurchase = async (courseId: string, courseEmail?: string) => {
-    if (!user || !localStorage.getItem('academy_token')) { window.location.href = 'https://reportafrica.africa/login?redirect=academy'; return; }
     const token = localStorage.getItem('academy_token');
+    if (!user || !token || isTokenExpired(token)) {
+      localStorage.removeItem('academy_token');
+      localStorage.removeItem('academy_user');
+      window.location.href = 'https://reportafrica.africa/login?redirect=academy';
+      return;
+    }
     const country = user?.country || 'NG';
     setError('');
     try {

@@ -4,15 +4,38 @@ import { getLocalPrice } from '@/lib/courses';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch { return true; }
+}
+
 export default function AcademyHome() {
   const [user, setUser] = useState<any>(null);
   const [country, setCountry] = useState('NG');
   const [courses, setCourses] = useState<any[]>([]);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
+    // Check for expired session banner
+    if (typeof window !== 'undefined' && window.location.search.includes('session_expired=1')) {
+      setSessionExpired(true);
+      window.history.replaceState({}, '', '/');
+    }
+
     const stored = localStorage.getItem('academy_user');
+    const token = localStorage.getItem('academy_token');
+
+    // If token exists but is expired, clear it and show sign in
+    if (token && isTokenExpired(token)) {
+      localStorage.removeItem('academy_token');
+      localStorage.removeItem('academy_user');
+      setSessionExpired(true);
+      return;
+    }
+
     if (stored) { const u = JSON.parse(stored); setUser(u); setCountry(u.country || 'NG'); }
-    // Fetch published courses from API
     fetch(`${API_URL}/courses`).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setCourses(data);
     }).catch(() => {});
@@ -27,7 +50,12 @@ export default function AcademyHome() {
       <div className="text-center mb-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-3">Become a Professional Citizen Journalist</h1>
         <p className="text-gray-500 max-w-xl mx-auto">Master mobile reporting, safety protocols, verification techniques, and live broadcasting. Earn your ReportAfrica certification.</p>
-        {!user && <p className="mt-4 text-sm text-amber-600">💡 <a href="https://reportafrica.africa/login?redirect=academy" className="underline">Log in to ReportAfrica</a> to access courses with your account.</p>}
+        {sessionExpired && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 max-w-md mx-auto">
+            ⏱ Your session has expired. Please <a href="https://reportafrica.africa/login?redirect=academy" className="font-semibold underline">sign in again</a> to continue.
+          </div>
+        )}
+        {!user && !sessionExpired && <p className="mt-4 text-sm text-amber-600">💡 <a href="https://reportafrica.africa/login?redirect=academy" className="underline">Log in to ReportAfrica</a> to access courses with your account.</p>}
       </div>
 
       {/* Bundle */}

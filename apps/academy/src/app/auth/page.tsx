@@ -11,7 +11,16 @@ function AuthHandler() {
 
   useEffect(() => {
     const code = searchParams.get('code');
-    if (!code) { router.push('/'); return; }
+    if (!code) {
+      // Check if redirected here due to expired session
+      const expired = searchParams.get('expired');
+      if (expired) {
+        router.push('/?session_expired=1');
+      } else {
+        router.push('/');
+      }
+      return;
+    }
 
     fetch(`${API_URL}/auth/academy-token`, {
       method: 'POST',
