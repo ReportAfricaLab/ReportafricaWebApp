@@ -21,6 +21,7 @@ function CourseDetailContent() {
   const [error, setError] = useState('');
 
   const isBundle = id === 'bundle';
+  const reference = searchParams.get('reference');
 
   useEffect(() => {
     const stored = localStorage.getItem('academy_user');
@@ -30,7 +31,6 @@ function CourseDetailContent() {
     const token = localStorage.getItem('academy_token');
 
     // Handle Paystack redirect back with ?reference=
-    const reference = searchParams.get('reference');
     if (reference && token) {
       setVerifying(true);
       fetch(`${API_URL}/courses/enroll/verify/${reference}`, {
@@ -69,14 +69,13 @@ function CourseDetailContent() {
         .then(data => {
           if (!Array.isArray(data)) return;
           if (isBundle) {
-            // enrolled in bundle if enrolled in all courses
             setEnrolled(data.length > 0 && data.some((e: any) => e.courseId === 'bundle'));
           } else {
             setEnrolled(data.some((e: any) => e.courseId === id || e.courseId === 'bundle'));
           }
         }).catch(() => {});
     }
-  }, [id, isBundle, searchParams]);
+  }, [id, isBundle, reference]);
 
   const handlePurchase = async (courseId: string, courseEmail?: string) => {
     if (!user || !localStorage.getItem('academy_token')) { window.location.href = 'https://reportafrica.africa/login?redirect=academy'; return; }
