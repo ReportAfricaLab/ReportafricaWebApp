@@ -1,18 +1,20 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { marked } from 'marked';
+import ReactMarkdown from 'react-markdown';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
-const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1').replace(/\/+$/, '');
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa';
 const BASE_URL = 'https://www.reportafrica.africa';
 
 async function getPost(slug: string) {
   try {
-    const res = await fetch(`${API_URL}/insights/posts/${slug}`, { cache: 'no-store' });
+    const res = await fetch(`${API_URL}/api/v1/insights/posts/${slug}`, {
+      next: { revalidate: 300 },
+    });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -20,13 +22,25 @@ async function getPost(slug: string) {
   }
 }
 
-async function getRelatedPosts(slug: string, tags: string[]) {
+async function getRelated(excludeSlug: string) {
   try {
-    const res = await fetch(`${API_URL}/insights/posts?status=published&limit=4`, { cache: 'no-store' });
+    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`, {
+      next: { revalidate: 300 },
+    });
     if (!res.ok) return [];
-    const data = await res.json();
-    const all = Array.isArray(data) ? data : (data.posts ?? []);
-    return all.filter((p: any) => p.slug !== slug).slice(0, 3);
+    const posts = await res.json();
+    return posts.filter((p: any) => p.slug !== excludeSlug).slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`);
+    if (!res.ok) return [];
+    const posts = await res.json();
+    return posts.map((p: any) => ({ slug: p.slug }));
   } catch {
     return [];
   }
@@ -49,6 +63,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description,
       url: `${BASE_URL}/insights/${params.slug}`,
       type: 'article',
+      publishedTime: post.published_at,
+      authors: [post.author],
       images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
     twitter: { card: 'summary_large_image', title, description, images: [imageUrl] },
@@ -56,10 +72,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const post = await getPost(params.slug);
-  if (!post || post.status !== 'published') notFound();
+  const [post, related] = await Promise.all([getPost(params.slug), getRelated(params.slug)]);
+  if (!post) notFound();
 
-  const related = await getRelatedPosts(params.slug, post.tags ?? []);
   const imageUrl = post.cover_image_url || `${BASE_URL}/logo.png`;
 
   const jsonLd = {
@@ -68,7 +83,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     headline: post.title,
     description: post.excerpt,
     image: imageUrl,
-    datePublished: post.published_at || post.created_at,
+    datePublished: post.published_at,
     author: { '@type': 'Person', name: post.author || 'ReportAfrica' },
     publisher: {
       '@type': 'Organization',
@@ -83,7 +98,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <article className="max-w-3xl mx-auto">
-        {post.tags?.length > 0 && (
+        {post.tags?.[0] && (
           <span className="text-xs font-semibold text-[#0F7B6C] uppercase tracking-wide">
             {post.tags[0]}
           </span>
@@ -93,7 +108,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
         <div className="flex items-center gap-3 text-sm text-gray-500 mb-8">
           {post.author && <span>By {post.author}</span>}
-          <span>{new Date(post.published_at || post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          {post.published_at && (
+            <span>{new Date(post.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          )}
         </div>
 
         {post.cover_image_url && (
@@ -102,10 +119,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           </div>
         )}
 
-        <div
-          className="prose prose-lg max-w-none text-gray-700"
-          dangerouslySetInnerHTML={{ __html: marked.parse(post.body || '') as string }}
-        />
+        <div className="prose prose-lg max-w-none text-gray-700">
+          <ReactMarkdown>{post.body}</ReactMarkdown>
+        </div>
 
         {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-8">

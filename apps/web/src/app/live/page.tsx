@@ -238,19 +238,15 @@ function LiveContent() {
           const data = await res.json();
           setWatchingStream({ ...s, viewerToken: data.token, wsUrl: data.wsUrl });
         } else {
-          // Token might be expired, try refresh
-          const refreshTk = localStorage.getItem('ra_refresh');
-          if (refreshTk) {
-            const refreshRes = await fetch(`${API_URL}/auth/refresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refreshToken: refreshTk }) });
-            if (refreshRes.ok) {
-              const refreshData = await refreshRes.json();
-              localStorage.setItem('ra_token', refreshData.token);
-              const retryRes = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${refreshData.token}` } });
-              if (retryRes.ok) {
-                const retryData = await retryRes.json();
-                setWatchingStream({ ...s, viewerToken: retryData.token, wsUrl: retryData.wsUrl });
-                return;
-              }
+          // Token expired — use cookie-based refresh (httpOnly cookie sent automatically)
+          const { refreshAccessToken } = await import('@/lib/api');
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            const retryRes = await fetch(`${API_URL}/livestream/${s.id}/viewer-token`, { headers: { Authorization: `Bearer ${newToken}` } });
+            if (retryRes.ok) {
+              const retryData = await retryRes.json();
+              setWatchingStream({ ...s, viewerToken: retryData.token, wsUrl: retryData.wsUrl });
+              return;
             }
           }
           setWatchingStream(s);

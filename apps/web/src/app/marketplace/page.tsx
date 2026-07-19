@@ -69,11 +69,26 @@ export default function MarketplacePage() {
     if (!token || !bio.trim() || !rate) { alert('Bio and rate are required'); return; }
     try {
       await api.marketplace.upsertProfile(token, {
-        bio: bio.trim(), beats: beats.split(',').map((b) => b.trim()).filter(Boolean),
-        ratePerArticle: Number(rate), rateCurrency: 'NGN', available: true,
+        bio: bio.trim(),
+        beats: beats.split(',').map((b) => b.trim()).filter(Boolean),
+        ratePerArticle: Number(rate),
+        rateCurrency: 'NGN',
+        available: true,
       });
       setShowProfileForm(false); loadAll();
     } catch (e: any) { alert(e.message || 'Failed'); }
+  };
+
+  const approveWork = async (id: string) => {
+    if (!token || !confirm('Approve this work and release payment?')) return;
+    try { await api.marketplace.approveWork(token, id); loadAll(); }
+    catch (e: any) { alert(e.message || 'Failed'); }
+  };
+
+  const acceptCommission = async (id: string) => {
+    if (!token) return;
+    try { await api.marketplace.acceptCommission(token, id); loadAll(); }
+    catch (e: any) { alert(e.message || 'Failed'); }
   };
 
   const allCommissions = [...reporterCommissions, ...clientCommissions].filter(
@@ -166,11 +181,11 @@ export default function MarketplacePage() {
                     <p className="text-sm text-gray-600 line-clamp-2 mb-3">{c.brief}</p>
                     <div className="flex gap-2">
                       {c.status === 'escrowed' && c.reporterId === (user as any)?.id && (
-                        <button onClick={() => api.marketplace.acceptCommission(token!, c.id).then(loadAll)}
+                        <button onClick={() => acceptCommission(c.id)}
                           className="bg-[#0F7B6C] text-white px-4 py-2 rounded-lg text-sm font-semibold">Accept</button>
                       )}
                       {c.status === 'submitted' && c.clientId === (user as any)?.id && (
-                        <button onClick={() => api.marketplace.approveWork(token!, c.id).then(loadAll)}
+                        <button onClick={() => approveWork(c.id)}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Approve & Pay Reporter</button>
                       )}
                     </div>
@@ -181,6 +196,7 @@ export default function MarketplacePage() {
         </>
       )}
 
+      {/* Commission modal */}
       {commissionTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">

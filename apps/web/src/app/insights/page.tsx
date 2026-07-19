@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export const revalidate = 0;
+export const revalidate = 300;
 
-const API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1').replace(/\/+$/, '');
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa';
 
 export const metadata: Metadata = {
   title: 'Insights — Citizen Journalism Reports & Guides',
@@ -12,27 +12,20 @@ export const metadata: Metadata = {
   alternates: { canonical: '/insights' },
 };
 
-async function getAllPosts() {
+async function getPosts() {
   try {
-    const url = `${API_URL}/insights/posts?status=published&limit=50`;
-    const res = await fetch(url, { cache: 'no-store' });
-    console.log('[insights] fetch status:', res.status, 'url:', url);
-    if (!res.ok) {
-      const text = await res.text();
-      console.log('[insights] fetch error body:', text.substring(0, 200));
-      return [];
-    }
-    const data = await res.json();
-    console.log('[insights] posts count:', Array.isArray(data) ? data.length : data?.posts?.length);
-    return Array.isArray(data) ? data : (data.posts ?? []);
-  } catch (e: any) {
-    console.log('[insights] fetch exception:', e.message);
+    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
     return [];
   }
 }
 
 export default async function InsightsPage() {
-  const posts = await getAllPosts();
+  const posts = await getPosts();
 
   return (
     <main className="min-h-screen py-16 px-4">
@@ -61,7 +54,7 @@ export default async function InsightsPage() {
                   </div>
                 )}
                 <div className="p-5">
-                  {post.tags?.length > 0 && (
+                  {post.tags?.[0] && (
                     <span className="text-xs font-semibold text-[#0F7B6C] uppercase tracking-wide">
                       {post.tags[0]}
                     </span>

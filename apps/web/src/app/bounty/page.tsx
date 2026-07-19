@@ -62,8 +62,11 @@ export default function BountyPage() {
                   <p className="text-xs text-gray-400">Expires {new Date(b.expiresAt).toLocaleDateString()}</p>
                 </div>
                 {b.status === 'open' && (
-                  <button onClick={() => claim(b.id)} disabled={claiming === b.id}
-                    className="bg-[#0F7B6C] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#0a6358] disabled:opacity-50 transition">
+                  <button
+                    onClick={() => claim(b.id)}
+                    disabled={claiming === b.id}
+                    className="bg-[#0F7B6C] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#0a6358] disabled:opacity-50 transition"
+                  >
                     {claiming === b.id ? 'Claiming...' : 'Claim Bounty'}
                   </button>
                 )}

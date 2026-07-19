@@ -10,7 +10,6 @@ export async function generateMetadata({ searchParams }: { searchParams: { id?: 
 
   try {
     const res = await fetch(`${API_URL}/reports/${id}`, { next: { revalidate: 60 } });
-    if (!res.ok) return { title: 'Report | ReportAfrica' };
     const report = await res.json();
     if (!report?.title) return { title: 'Report | ReportAfrica' };
 
@@ -31,7 +30,9 @@ export async function generateMetadata({ searchParams }: { searchParams: { id?: 
         siteName: 'ReportAfrica',
         publishedTime: report.createdAt,
         modifiedTime: report.updatedAt,
-      } as any,
+        authors: [report.author?.displayName || 'ReportAfrica Contributor'],
+        tags: [report.category, report.country, 'Africa', 'citizen journalism'],
+      },
       twitter: {
         card: 'summary_large_image',
         title: report.aiHeadline || report.title,
@@ -47,7 +48,6 @@ export async function generateMetadata({ searchParams }: { searchParams: { id?: 
 async function getReport(id: string) {
   try {
     const res = await fetch(`${API_URL}/reports/${id}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
     return res.json();
   } catch {
     return null;

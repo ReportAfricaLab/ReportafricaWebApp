@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 type Tab = 'subscriptions' | 'subscribers';
 
 export default function FanSubscriptionsPage() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [tab, setTab] = useState<Tab>('subscriptions');
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [subscribers, setSubscribers] = useState<any[]>([]);
@@ -16,11 +16,13 @@ export default function FanSubscriptionsPage() {
   useEffect(() => {
     if (!token) return;
     setLoading(true);
-    Promise.all([api.fanSub.mySubscriptions(token), api.fanSub.mySubscribers(token)])
-      .then(([subData, srData]) => {
-        setSubscriptions(Array.isArray(subData?.data) ? subData.data : []);
-        setSubscribers(Array.isArray(srData?.data) ? srData.data : []);
-      }).catch(() => {}).finally(() => setLoading(false));
+    Promise.all([
+      api.fanSub.mySubscriptions(token),
+      api.fanSub.mySubscribers(token),
+    ]).then(([subData, srData]) => {
+      setSubscriptions(Array.isArray(subData?.data) ? subData.data : []);
+      setSubscribers(Array.isArray(srData?.data) ? srData.data : []);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [token]);
 
   const cancel = async (reporterId: string) => {
@@ -49,7 +51,9 @@ export default function FanSubscriptionsPage() {
         ))}
       </div>
 
-      {loading ? <p className="text-center text-gray-400 py-12">Loading...</p> : (
+      {loading ? (
+        <p className="text-center text-gray-400 py-12">Loading...</p>
+      ) : (
         <div className="space-y-3">
           {(tab === 'subscriptions' ? subscriptions : subscribers).length === 0 ? (
             <p className="text-center text-gray-400 py-12">

@@ -5,18 +5,15 @@ interface FetchOptions extends RequestInit {
   _retried?: boolean;
 }
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   try {
-    const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('ra_refresh') : null;
-    if (!refreshToken) return null;
-
+    // No localStorage read — refresh token is httpOnly cookie, sent automatically
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({ refreshToken: '' }),
       credentials: 'include',
     });
-
     if (!res.ok) return null;
     const data = await res.json();
     if (data.token) {
@@ -32,11 +29,12 @@ async function refreshAccessToken(): Promise<string | null> {
 function clearAuthAndRedirect() {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('ra_token');
-  localStorage.removeItem('ra_refresh');
   localStorage.removeItem('ra_user');
-  // Only redirect if not already on login/register page
+  // ra_refresh no longer in localStorage — nothing to remove
   if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-    window.location.href = '/login';
+    const returnTo = window.location.pathname + window.location.search;
+    sessionStorage.setItem('ra_return_to', returnTo);
+    window.location.href = `/login?returnTo=${encodeURIComponent(returnTo)}`;
   }
 }
 
@@ -173,27 +171,38 @@ export const api = {
     getByReport: (reportId: string) => fetchAPI(`/tips/report/${reportId}`),
   },
   bounty: {
-    getFeed: (country: string) => fetchAPI(`/bounties/feed?country=${country}`),
+    getFeed: (country: string, page = 1) => fetchAPI(`/bounties/feed?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/bounties/${id}`),
     claim: (token: string, id: string) => fetchAPI(`/bounties/${id}/claim`, { method: 'POST', token }),
   },
   assignment: {
-    getFeed: (country: string) => fetchAPI(`/assignments/feed?country=${country}`),
-    claim: (token: string, id: string) => fetchAPI(`/assignments/${id}/claim`, { method: 'POST', token }),
-    submit: (token: string, id: string, reportId: string) => fetchAPI(`/assignments/${id}/submit`, { method: 'POST', body: JSON.stringify({ reportId }), token }),
+    getFeed: (country: string, page = 1) => fetchAPI(`/assignment-desk/feed?country=${country}&page=${page}`),
+    getById: (id: string) => fetchAPI(`/assignment-desk/${id}`),
+    submit: (token: string, id: string, reportId: string) => fetchAPI(`/assignment-desk/${id}/submit`, { method: 'POST', body: JSON.stringify({ reportId }), token }),
   },
   fanSub: {
-    mySubscriptions: (token: string) => fetchAPI('/fan-subscriptions/my-subscriptions', { token }),
-    mySubscribers: (token: string) => fetchAPI('/fan-subscriptions/my-subscribers', { token }),
-    cancel: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/${reporterId}/cancel`, { method: 'DELETE', token }),
+    getPlans: (reporterId: string, country: string) => fetchAPI(`/fan-subscriptions/plans/${reporterId}?country=${country}`),
+    subscribe: (token: string, reporterId: string, body: { tier: string; email: string }) => fetchAPI(`/fan-subscriptions/${reporterId}`, { method: 'POST', body: JSON.stringify(body), token }),
+    cancel: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/${reporterId}`, { method: 'DELETE', token }),
+    mySubscriptions: (token: string, page = 1) => fetchAPI(`/fan-subscriptions/my/subscriptions?page=${page}`, { token }),
+    mySubscribers: (token: string, page = 1) => fetchAPI(`/fan-subscriptions/my/subscribers?page=${page}`, { token }),
+    isSubscribed: (token: string, reporterId: string) => fetchAPI(`/fan-subscriptions/check/${reporterId}`, { token }),
   },
   marketplace: {
-    browse: (country: string) => fetchAPI(`/reporter-marketplace/browse?country=${country}`),
-    getProfile: (userId: string) => fetchAPI(`/reporter-marketplace/profile/${userId}`),
+    browse: (country?: string, beat?: string, page = 1) => fetchAPI(`/reporter-marketplace?${country ? `country=${country}&` : ''}${beat ? `beat=${beat}&` : ''}page=${page}`),
+    getProfile: (reporterId: string) => fetchAPI(`/reporter-marketplace/profile/${reporterId}`),
     upsertProfile: (token: string, body: any) => fetchAPI('/reporter-marketplace/profile', { method: 'POST', body: JSON.stringify(body), token }),
-    requestCommission: (token: string, reporterId: string, body: any) => fetchAPI(`/reporter-marketplace/${reporterId}/commission`, { method: 'POST', body: JSON.stringify(body), token }),
-    myReporterCommissions: (token: string) => fetchAPI('/reporter-marketplace/commissions/reporter', { token }),
-    myClientCommissions: (token: string) => fetchAPI('/reporter-marketplace/commissions/client', { token }),
-    acceptCommission: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commissions/${id}/accept`, { method: 'PATCH', token }),
-    approveWork: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commissions/${id}/approve`, { method: 'PATCH', token }),
+    requestCommission: (token: string, reporterId: string, body: any) => fetchAPI(`/reporter-marketplace/commission/${reporterId}`, { method: 'POST', body: JSON.stringify(body), token }),
+    acceptCommission: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commission/${id}/accept`, { method: 'PATCH', token }),
+    submitWork: (token: string, id: string, body: any) => fetchAPI(`/reporter-marketplace/commission/${id}/submit`, { method: 'PATCH', body: JSON.stringify(body), token }),
+    approveWork: (token: string, id: string) => fetchAPI(`/reporter-marketplace/commission/${id}/approve`, { method: 'PATCH', token }),
+    rejectWork: (token: string, id: string, reason: string) => fetchAPI(`/reporter-marketplace/commission/${id}/reject`, { method: 'PATCH', body: JSON.stringify({ reason }), token }),
+    myReporterCommissions: (token: string, page = 1) => fetchAPI(`/reporter-marketplace/my/reporter-commissions?page=${page}`, { token }),
+    myClientCommissions: (token: string, page = 1) => fetchAPI(`/reporter-marketplace/my/client-commissions?page=${page}`, { token }),
+  },
+  ticket: {
+    setPrice: (token: string, streamId: string, body: { price: number; currency: string }) => fetchAPI(`/livestream/${streamId}/ticket-price`, { method: 'PATCH', body: JSON.stringify(body), token }),
+    purchase: (token: string, streamId: string, email: string) => fetchAPI(`/livestream/${streamId}/purchase-ticket`, { method: 'POST', body: JSON.stringify({ email }), token }),
+    checkAccess: (token: string, streamId: string) => fetchAPI(`/livestream/${streamId}/ticket-access`, { token }),
   },
 };

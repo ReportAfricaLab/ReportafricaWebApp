@@ -15,7 +15,6 @@ export default function AssignmentsPage() {
   const { token, user } = useAuth();
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [claiming, setClaiming] = useState<string | null>(null);
   const [submitId, setSubmitId] = useState<string | null>(null);
   const [reportId, setReportId] = useState('');
   const country = (user as any)?.country || 'NG';
@@ -28,14 +27,6 @@ export default function AssignmentsPage() {
       const data = await api.assignment.getFeed(country);
       setAssignments(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
     } catch { setAssignments([]); } finally { setLoading(false); }
-  };
-
-  const claim = async (id: string) => {
-    if (!token) { alert('Please log in'); return; }
-    setClaiming(id);
-    try { await api.assignment.claim(token, id); load(); }
-    catch (e: any) { alert(e.message || 'Could not claim'); }
-    finally { setClaiming(null); }
   };
 
   const submit = async () => {
@@ -74,9 +65,9 @@ export default function AssignmentsPage() {
                 </div>
                 <div className="flex gap-2">
                   {a.status === 'open' && (
-                    <button onClick={() => claim(a.id)} disabled={claiming === a.id}
-                      className="bg-[#0F7B6C] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#0a6358] disabled:opacity-50 transition">
-                      {claiming === a.id ? 'Claiming...' : 'Claim'}
+                    <button onClick={() => setSubmitId(a.id)}
+                      className="bg-[#0F7B6C] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#0a6358] transition">
+                      Submit Report
                     </button>
                   )}
                   {a.status === 'claimed' && (
@@ -92,12 +83,14 @@ export default function AssignmentsPage() {
         </div>
       )}
 
+      {/* Submit modal */}
       {submitId && (
         <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md">
             <h3 className="font-bold text-gray-900 mb-2">Submit Report ID</h3>
             <p className="text-sm text-gray-500 mb-4">Paste the ID of the report you filed for this assignment.</p>
-            <input value={reportId} onChange={(e) => setReportId(e.target.value)} placeholder="Report UUID"
+            <input value={reportId} onChange={(e) => setReportId(e.target.value)}
+              placeholder="Report UUID"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 outline-none focus:ring-2 focus:ring-[#0F7B6C]" />
             <div className="flex gap-3">
               <button onClick={() => { setSubmitId(null); setReportId(''); }}
