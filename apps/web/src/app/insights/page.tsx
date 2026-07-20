@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa';
+const API_URL = 'https://api.reportafrica.africa';
 
 export const metadata: Metadata = {
   title: 'Insights — Citizen Journalism Reports & Guides',
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 async function getPosts() {
   try {
     const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`, {
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
     if (!res.ok) return [];
     return res.json();
