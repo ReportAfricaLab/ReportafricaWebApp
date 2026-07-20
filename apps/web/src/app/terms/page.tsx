@@ -4,7 +4,7 @@ export default function TermsPage() {
       <h1 className="text-3xl font-bold text-[#0F7B6C] mb-2">ReportAfrica Terms of Service</h1>
       <div className="prose prose-gray max-w-none space-y-4 text-sm text-gray-700">
         <p><strong>Effective Date:</strong> June 2026</p>
-        <p><strong>Last Updated:</strong> June 2026</p>
+        <p><strong>Last Updated:</strong> July 2026</p>
 
         <h2 className="text-lg font-semibold mt-6">1. Introduction</h2>
         <p>Welcome to ReportAfrica.</p>
@@ -98,23 +98,41 @@ export default function TermsPage() {
         </ul>
 
         <h2 className="text-lg font-semibold mt-6">8. Payments, Donations, and Monetization</h2>
-        <p>ReportAfrica supports:</p>
+        <p>ReportAfrica supports multiple payment and earning features including:</p>
         <ul className="list-disc pl-6 space-y-1">
-          <li>Donations</li>
-          <li>Tips</li>
-          <li>Creator earnings</li>
-          <li>Subscriptions</li>
-          <li>Advertising payments</li>
-          <li>Course purchases</li>
-          <li>Wallet transactions</li>
+          <li>Donations and community fundraising campaigns</li>
+          <li>Tips from readers to reporters</li>
+          <li>Reporter subscriptions (Pro, Elite, Legend tiers)</li>
+          <li>Fan Subscriptions (Basic and Premium tiers — reporters earn 80%, platform takes 20%)</li>
+          <li>Media licensing fees (50% standard / 70% Certified reporters)</li>
+          <li>Bounty rewards (paid from platform pool on admin approval)</li>
+          <li>Assignment Desk rewards (paid from platform pool on admin approval)</li>
+          <li>Breaking News bonuses (paid instantly from platform pool when report is marked breaking)</li>
+          <li>Weekly Ad Revenue Pool distributions (top reporters per country, every Monday)</li>
+          <li>Monthly Trust Bonus distributions (Certified reporters, 1st of every month)</li>
+          <li>Reporter Marketplace commissions (80% Trained / 85% Certified reporters)</li>
+          <li>Category Sponsorship rewards (automatic per qualifying report)</li>
+          <li>Ticketed Live Stream revenue (80% Trained / 85% Certified reporters)</li>
+          <li>Course purchases and Academy enrollment fees</li>
+          <li>Referral cash rewards</li>
+          <li>Business and government subscription fees</li>
         </ul>
-        <p>All payments are processed through third-party payment providers.</p>
-        <p>Important terms:</p>
+        <p>All payments are processed through third-party payment providers (Paystack and KoraPay).</p>
+
+        <h3 className="font-semibold mt-4">8a. Escrow and Marketplace Commissions</h3>
+        <p>When a client commissions a reporter through the Reporter Marketplace, the agreed budget is held in escrow via Paystack until the reporter delivers the work and the client approves it. ReportAfrica is not a party to the commission agreement between client and reporter. We facilitate the escrow and payout only. Disputes between clients and reporters must be raised with support@reportafrica.africa. Escrowed funds are not released until a resolution is reached.</p>
+
+        <h3 className="font-semibold mt-4">8b. Bounties and Assignments</h3>
+        <p>Bounty and assignment rewards are paid from platform-managed pools. Rewards are only paid on approved submissions. ReportAfrica reserves the right to reject submissions that do not meet the stated brief. Rejected submissions do not receive payment. Bounties that expire before being claimed are cancelled and the reward is returned to the pool. Assignment rewards are forfeited if the deadline passes without a valid submission.</p>
+
+        <h3 className="font-semibold mt-4">8c. General Payment Terms</h3>
         <ul className="list-disc pl-6 space-y-1">
           <li>Payments are generally non-refundable unless required by law</li>
-          <li>ReportAfrica is not responsible for disputes between users and creators</li>
-          <li>Creators are responsible for how funds are used</li>
-          <li>We may delay or withhold payouts for fraud prevention or compliance checks</li>
+          <li>ReportAfrica is not responsible for disputes between users and creators outside of the escrow process</li>
+          <li>Creators and reporters are responsible for how funds are used once disbursed</li>
+          <li>We may delay or withhold payouts for fraud prevention, compliance checks, or account violations</li>
+          <li>Earning rates and platform fees may be updated at any time with notice posted on the platform</li>
+          <li>Reporters are responsible for any tax obligations arising from earnings received through the platform</li>
         </ul>
 
         <h2 className="text-lg font-semibold mt-6">9. Advertising and Sponsored Content</h2>
@@ -124,8 +142,10 @@ export default function TermsPage() {
           <li>Ads</li>
           <li>Brand campaigns</li>
           <li>Promoted content</li>
+          <li>Category Sponsorships — where businesses pay a reward per qualifying report in a sponsored category</li>
         </ul>
-        <p>Advertisers are responsible for their content. We do not guarantee accuracy of third-party advertisements.</p>
+        <p>Advertisers and sponsors are responsible for their content. We do not guarantee accuracy of third-party advertisements.</p>
+        <p>Category Sponsorship rewards are paid automatically to reporters who publish qualifying reports. ReportAfrica does not guarantee the availability or continuation of any sponsorship.</p>
         <p>We may moderate or remove ads that violate our policies.</p>
 
         <h2 className="text-lg font-semibold mt-6">10. Intellectual Property</h2>

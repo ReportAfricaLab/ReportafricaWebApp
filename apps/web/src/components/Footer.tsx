@@ -32,6 +32,7 @@ export default function Footer() {
               <a href="https://academy.reportafrica.africa" target="_blank" className="block hover:text-white transition">🎓 Journalist Academy</a>
               <Link href="/insights" className="block hover:text-white transition">📰 Insights</Link>
               <Link href="/how-it-works" className="block hover:text-white transition">How It Works</Link>
+              <Link href="/how-to-earn" className="block hover:text-white transition">💰 How to Earn</Link>
               <Link href="/faq" className="block hover:text-white transition">FAQ</Link>
               <Link href="/guidelines" className="block hover:text-white transition">Community Guidelines</Link>
               <Link href="/media-licensing" className="block hover:text-white transition">Media Licensing</Link>
