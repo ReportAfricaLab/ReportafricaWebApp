@@ -281,7 +281,7 @@ export default function HowToEarnPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-900 mb-1">Payout timing</p>
-              <p>Tips and bounties: instant on approval. Ad revenue pool: every Monday. Trust bonus: 1st of every month. Marketplace: on client approval.</p>
+              <p>Tips, bounties, assignments, breaking news bonus, sponsorship rewards: instant on approval. Marketplace commissions: instant on client approval. Fan subscriptions: instant when subscriber&apos;s monthly charge goes through. Ad revenue pool: distributed weekly every Monday. Trust bonus: distributed monthly on the 1st.</p>
             </div>
             <div>
               <p className="font-semibold text-gray-900 mb-1">Platform fee</p>
