@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { marked } from 'marked';
 import Image from 'next/image';
 import Link from 'next/link';
 import AppCTA from './components/AppCTA';
@@ -103,7 +104,7 @@ export default function ArticlePage() {
 
         <div
           className="prose prose-lg max-w-none text-gray-700"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: marked.parse(post.body || '') as string }}
         />
 
         {post.tags?.length > 0 && (
