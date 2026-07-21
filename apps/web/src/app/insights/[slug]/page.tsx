@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import ReactMarkdown from 'react-markdown';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
@@ -105,9 +104,10 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           </div>
         )}
 
-        <div className="prose prose-lg max-w-none text-gray-700">
-          <ReactMarkdown>{post.body}</ReactMarkdown>
-        </div>
+        <div
+          className="prose prose-lg max-w-none text-gray-700"
+          dangerouslySetInnerHTML={{ __html: post.body }}
+        />
 
         {post.tags?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-8">
