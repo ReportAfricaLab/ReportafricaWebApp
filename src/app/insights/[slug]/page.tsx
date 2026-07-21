@@ -6,6 +6,7 @@ import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
 export const revalidate = 300;
+export const dynamicParams = true;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa';
 const BASE_URL = 'https://www.reportafrica.africa';

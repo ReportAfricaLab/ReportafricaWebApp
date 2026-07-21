@@ -15,7 +15,11 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const getReturnTo = (): string => {
+  const getReturnTo = (token?: string): string => {
+    const redirect = searchParams.get('redirect');
+    if (redirect === 'academy' && token) {
+      return `https://academy.reportafrica.africa/auth?code=${encodeURIComponent(token)}`;
+    }
     const param = searchParams.get('returnTo');
     // Security: only allow relative paths
     if (param && param.startsWith('/') && !param.startsWith('//')) return param;
@@ -32,7 +36,9 @@ export default function LoginPage() {
       const data = await api.auth.login({ email, password });
       login(data.user, data.token, data.refreshToken);
       sessionStorage.removeItem('ra_return_to');
-      router.push(getReturnTo());
+      const returnTo = getReturnTo(data.token);
+      if (returnTo.startsWith('http')) { window.location.href = returnTo; return; }
+      router.push(returnTo);
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -70,7 +76,9 @@ export default function LoginPage() {
       const data = await api.auth.oauth('google', idToken);
       login(data.user, data.token, data.refreshToken);
       sessionStorage.removeItem('ra_return_to');
-      router.push(getReturnTo());
+      const returnTo = getReturnTo(data.token);
+      if (returnTo.startsWith('http')) { window.location.href = returnTo; return; }
+      router.push(returnTo);
     } catch (err: any) {
       setError(err.message || 'Google sign-in failed');
       setLoading(false);
