@@ -5,17 +5,14 @@ import ReactMarkdown from 'react-markdown';
 import AppCTA from './components/AppCTA';
 import RelatedArticles from './components/RelatedArticles';
 
-export const revalidate = 300;
-export const dynamicParams = true;
+export const dynamic = 'force-dynamic';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa';
 const BASE_URL = 'https://www.reportafrica.africa';
 
 async function getPost(slug: string) {
   try {
-    const res = await fetch(`${API_URL}/api/v1/insights/posts/${slug}`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(`${API_URL}/api/v1/insights/posts/${slug}`, { cache: 'no-store' });
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -25,23 +22,10 @@ async function getPost(slug: string) {
 
 async function getRelated(excludeSlug: string) {
   try {
-    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`, { cache: 'no-store' });
     if (!res.ok) return [];
     const posts = await res.json();
     return posts.filter((p: any) => p.slug !== excludeSlug).slice(0, 3);
-  } catch {
-    return [];
-  }
-}
-
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/insights/posts?status=published`);
-    if (!res.ok) return [];
-    const posts = await res.json();
-    return posts.map((p: any) => ({ slug: p.slug }));
   } catch {
     return [];
   }
