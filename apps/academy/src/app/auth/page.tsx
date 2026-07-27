@@ -12,7 +12,6 @@ function AuthHandler() {
   useEffect(() => {
     const code = searchParams.get('code');
     if (!code) {
-      // Check if redirected here due to expired session
       const expired = searchParams.get('expired');
       if (expired) {
         router.push('/?session_expired=1');
@@ -21,6 +20,8 @@ function AuthHandler() {
       }
       return;
     }
+
+    const returnCourse = searchParams.get('returnCourse') || '/';
 
     fetch(`${API_URL}/auth/academy-token`, {
       method: 'POST',
@@ -39,7 +40,7 @@ function AuthHandler() {
             country: payload.country || 'NG',
           }));
         } catch {}
-        router.push('/');
+        router.push(returnCourse);
       })
       .catch(() => router.push('/'));
   }, [searchParams, router]);

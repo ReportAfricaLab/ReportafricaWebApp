@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.reportafrica.africa/api/v1';
+
 export default function GoogleCallbackPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -15,13 +17,27 @@ export default function GoogleCallbackPage() {
 
     const params = new URLSearchParams(hash.substring(1));
     const idToken = params.get('id_token');
+    const rawState = params.get('state');
+
+    let stateObj: any = {};
+    try { if (rawState) stateObj = JSON.parse(atob(rawState)); } catch {}
 
     if (!idToken) { setError('No token received from Google'); return; }
 
     api.auth.oauth('google', idToken)
-      .then((data) => {
+      .then(async (data) => {
         login(data.user, data.token, data.refreshToken);
-        router.push('/feed');
+        if (stateObj.redirect === 'academy') {
+          const codeRes = await fetch(`${API_URL}/auth/academy-code`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${data.token}` },
+          });
+          const { code } = await codeRes.json();
+          const returnCourse = stateObj.returnCourse || '';
+          window.location.href = `https://academy.reportafrica.africa/auth?code=${code}${returnCourse ? `&returnCourse=${encodeURIComponent(returnCourse)}` : ''}`;
+        } else {
+          router.push(stateObj.returnTo || '/feed');
+        }
       })
       .catch((err) => {
         setError(err.message || 'Google sign-in failed');

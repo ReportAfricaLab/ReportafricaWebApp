@@ -6,7 +6,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    setLoggedIn(!!localStorage.getItem('academy_token'));
+    const check = () => setLoggedIn(!!localStorage.getItem('academy_token'));
+    check();
+    window.addEventListener('focus', check);
+    window.addEventListener('storage', check);
+    return () => {
+      window.removeEventListener('focus', check);
+      window.removeEventListener('storage', check);
+    };
   }, []);
 
   return (

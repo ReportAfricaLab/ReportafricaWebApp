@@ -18,27 +18,36 @@ export default function AcademyHome() {
   const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
-    // Check for expired session banner
     if (typeof window !== 'undefined' && window.location.search.includes('session_expired=1')) {
       setSessionExpired(true);
       window.history.replaceState({}, '', '/');
     }
 
-    const stored = localStorage.getItem('academy_user');
-    const token = localStorage.getItem('academy_token');
+    const loadUser = () => {
+      const stored = localStorage.getItem('academy_user');
+      const token = localStorage.getItem('academy_token');
 
-    // If token exists but is expired, clear it and show sign in
-    if (token && isTokenExpired(token)) {
-      localStorage.removeItem('academy_token');
-      localStorage.removeItem('academy_user');
-      setSessionExpired(true);
-      return;
-    }
+      if (token && isTokenExpired(token)) {
+        localStorage.removeItem('academy_token');
+        localStorage.removeItem('academy_user');
+        setSessionExpired(true);
+        setUser(null);
+        return;
+      }
+      if (stored) { const u = JSON.parse(stored); setUser(u); setCountry(u.country || 'NG'); }
+      else setUser(null);
+    };
 
-    if (stored) { const u = JSON.parse(stored); setUser(u); setCountry(u.country || 'NG'); }
+    loadUser();
+    window.addEventListener('focus', loadUser);
+    window.addEventListener('storage', loadUser);
     fetch(`${API_URL}/courses`).then(r => r.json()).then(data => {
       if (Array.isArray(data)) setCourses(data);
     }).catch(() => {});
+    return () => {
+      window.removeEventListener('focus', loadUser);
+      window.removeEventListener('storage', loadUser);
+    };
   }, []);
 
   // Bundle price fixed at $40

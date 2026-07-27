@@ -89,7 +89,8 @@ function CourseDetailContent() {
     if (!user || !token || isTokenExpired(token)) {
       localStorage.removeItem('academy_token');
       localStorage.removeItem('academy_user');
-      window.location.href = 'https://reportafrica.africa/login?redirect=academy';
+      const returnPath = isBundle ? '/course/bundle' : `/course/${id}`;
+      window.location.href = `https://reportafrica.africa/login?redirect=academy&returnCourse=${encodeURIComponent(returnPath)}`;
       return;
     }
     const country = user?.country || 'NG';

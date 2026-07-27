@@ -38,7 +38,8 @@ function LoginForm() {
           headers: { Authorization: `Bearer ${data.token}` },
         });
         const { code } = await codeRes.json();
-        window.location.href = `https://academy.reportafrica.africa/auth?code=${code}`;
+        const returnCourse = searchParams.get('returnCourse') || '';
+        window.location.href = `https://academy.reportafrica.africa/auth?code=${code}${returnCourse ? `&returnCourse=${encodeURIComponent(returnCourse)}` : ''}`;
         return;
       }
       router.push(getReturnTo());
@@ -59,7 +60,12 @@ function LoginForm() {
 
         const redirectUri = window.location.origin + '/google-callback';
         const scope = 'openid email profile';
-        const state = btoa(JSON.stringify({ returnTo: '/feed' }));
+        const isAcademy = searchParams.get('redirect') === 'academy';
+        const returnCourse = searchParams.get('returnCourse') || '';
+        const stateObj = isAcademy
+          ? { redirect: 'academy', returnCourse }
+          : { returnTo: getReturnTo() };
+        const state = btoa(JSON.stringify(stateObj));
         const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token+id_token&scope=${encodeURIComponent(scope)}&nonce=${Date.now()}&state=${state}`;
 
         // Full page redirect instead of popup (avoids COOP issues)
